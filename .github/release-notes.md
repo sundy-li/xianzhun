@@ -1,20 +1,20 @@
-弦准吉他调音器 JTune v0.2：调音页和桌面网页布局重做。
+弦准吉他调音器 Xianzhun v0.2：调音页和桌面网页布局重做。
 
-**在线使用（无需安装）**：https://xuanzhun.pages.dev ，支持添加到主屏幕，离线可用。
+**在线使用（无需安装）**：https://xianzhun.pages.dev ，支持添加到主屏幕，离线可用。
 
 ## 下载
 
 | 平台 | 文件 |
 |---|---|
-| Android | `JTune_0.2.0_android.apk` |
-| macOS（Apple 芯片和 Intel 通用） | `JTune_0.2.0_universal.dmg` |
-| Windows | `JTune_0.2.0_x64-setup.exe` 或 `JTune_0.2.0_x64_en-US.msi` |
-| 静态网页 | `JTune_0.2.0_web.zip`（可部署到任意静态服务器，需 HTTPS 才能用麦克风） |
+| Android | `Xianzhun_0.2.0_android.apk` |
+| macOS（Apple 芯片和 Intel 通用） | `Xianzhun_0.2.0_universal.dmg` |
+| Windows | `Xianzhun_0.2.0_x64-setup.exe` 或 `Xianzhun_0.2.0_x64_en-US.msi` |
+| 静态网页 | `Xianzhun_0.2.0_web.zip`（可部署到任意静态服务器，需 HTTPS 才能用麦克风） |
 
 ## 安装提示
 
 - **Android**：需要在系统设置里允许"安装未知来源应用"。首次打开会请求麦克风权限。
-- **macOS**：应用没有经过 Apple 公证。首次打开如果提示"无法验证开发者"或"已损坏"，在终端执行 `xattr -cr /Applications/JTune.app` 后再打开。
+- **macOS**：应用没有经过 Apple 公证。首次打开如果提示"无法验证开发者"或"已损坏"，在终端执行 `xattr -cr /Applications/Xianzhun.app` 后再打开。
 - **Windows**：安装包没有代码签名，SmartScreen 提示时点"更多信息" → "仍要运行"。
 
 ## 本版更新

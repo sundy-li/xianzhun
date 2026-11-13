@@ -1,17 +1,17 @@
 [package]
-name = "jtune"
+name = "xianzhun"
 version = "0.2.0"
 description = "弦准吉他调音器"
 authors = ["sundy-li"]
 license = "UNLICENSED"
-repository = "https://github.com/sundy-li/JTune"
+repository = "https://github.com/sundy-li/xianzhun"
 edition = "2024"
 rust-version = "1.90"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
-name = "jtune_lib"
+name = "xianzhun_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

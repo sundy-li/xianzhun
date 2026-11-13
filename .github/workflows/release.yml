@@ -33,7 +33,7 @@ jobs:
           REPO="${{ github.repository }}"
           ID=$(gh api "repos/$REPO/releases?per_page=100" --jq "map(select(.tag_name == \"$TAG\"))[0].id // empty")
           if [ -z "$ID" ]; then
-            ID=$(gh api -X POST "repos/$REPO/releases" -f tag_name="$TAG" -f name="JTune $TAG" \
+            ID=$(gh api -X POST "repos/$REPO/releases" -f tag_name="$TAG" -f name="Xianzhun $TAG" \
               -F draft=true -f body="$(cat .github/release-notes.md)" --jq .id)
           fi
           test -n "$ID"
@@ -95,11 +95,11 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
-          echo "$ANDROID_KEY_BASE64" | base64 -d > "$RUNNER_TEMP/jtune-release.jks"
+          echo "$ANDROID_KEY_BASE64" | base64 -d > "$RUNNER_TEMP/xianzhun-release.jks"
           {
             echo "keyAlias=$ANDROID_KEY_ALIAS"
             echo "password=$ANDROID_KEY_PASSWORD"
-            echo "storeFile=$RUNNER_TEMP/jtune-release.jks"
+            echo "storeFile=$RUNNER_TEMP/xianzhun-release.jks"
           } > src-tauri/gen/android/keystore.properties
       - name: Build APK
         # ANDROID_NDK_LATEST_HOME is a runner environment variable, not a workflow env value
@@ -114,8 +114,8 @@ jobs:
           VERSION=$(node -p "require('./src-tauri/tauri.conf.json').version")
           APK=$(find src-tauri/gen/android/app/build/outputs/apk -name '*-release.apk' | head -1)
           test -n "$APK"
-          cp "$APK" "JTune_${VERSION}_android.apk"
-          gh release upload "$TAG" "JTune_${VERSION}_android.apk" --clobber
+          cp "$APK" "Xianzhun_${VERSION}_android.apk"
+          gh release upload "$TAG" "Xianzhun_${VERSION}_android.apk" --clobber
 
   web:
     needs: create-release
@@ -134,8 +134,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION=$(node -p "require('./src-tauri/tauri.conf.json').version")
-          (cd dist && zip -qr "../JTune_${VERSION}_web.zip" .)
-          gh release upload "$TAG" "JTune_${VERSION}_web.zip" --clobber
+          (cd dist && zip -qr "../Xianzhun_${VERSION}_web.zip" .)
+          gh release upload "$TAG" "Xianzhun_${VERSION}_web.zip" --clobber
 
   publish:
     needs: [create-release, desktop, android, web]

@@ -1,7 +1,7 @@
 # 弦准吉他调音器 (Guitar Tuner & Metronome)
 
-**在线使用**：<https://xuanzhun.pages.dev>（可添加到主屏幕，离线可用）
-**安装包**：Android / macOS / Windows 见 [Releases](https://github.com/sundy-li/JTune/releases)
+**在线使用**：<https://xianzhun.pages.dev>（可添加到主屏幕，离线可用）
+**安装包**：Android / macOS / Windows 见 [Releases](https://github.com/sundy-li/xianzhun/releases)
 
 ## 开发与发布
 
@@ -14,8 +14,9 @@ bun run build      # 构建静态站点到 dist/
 # 发布：推送 v 开头的 tag，GitHub Actions 会构建 Android / macOS / Windows 安装包并创建 Release
 git tag v0.2 && git push origin v0.2
 
-# 部署网页到 Cloudflare Pages
-bun run build && npx wrangler pages deploy dist --project-name xuanzhun --branch main
+# 网页：push 到 main 后 CI 自动部署到 https://xianzhun.pages.dev
+# （需要 GitHub Secrets CLOUDFLARE_API_TOKEN、CLOUDFLARE_ACCOUNT_ID）。手动部署：
+bun run build && npx wrangler pages deploy dist --project-name xianzhun --branch main
 ```
 
 桌面端和 Android 由 [Tauri 2](https://tauri.app) 打包（`src-tauri/`）。Android 发布签名的 keystore 保存在 GitHub Secrets（`ANDROID_KEY_BASE64`、`ANDROID_KEY_PASSWORD`、`ANDROID_KEY_ALIAS`）。
