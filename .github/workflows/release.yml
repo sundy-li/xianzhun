@@ -29,11 +29,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if ! gh release view "$TAG" >/dev/null 2>&1; then
-            gh release create "$TAG" --draft --verify-tag \
-              --title "JTune $TAG" --notes-file .github/release-notes.md
+          # The list API also returns drafts, so a re-run reuses the draft instead of adding one
+          REPO="${{ github.repository }}"
+          ID=$(gh api "repos/$REPO/releases?per_page=100" --jq "map(select(.tag_name == \"$TAG\"))[0].id // empty")
+          if [ -z "$ID" ]; then
+            ID=$(gh api -X POST "repos/$REPO/releases" -f tag_name="$TAG" -f name="JTune $TAG" \
+              -F draft=true -f body="$(cat .github/release-notes.md)" --jq .id)
           fi
-          echo "release_id=$(gh api "repos/${{ github.repository }}/releases" --jq ".[] | select(.tag_name == \"$TAG\") | .id")" >> "$GITHUB_OUTPUT"
+          test -n "$ID"
+          echo "release_id=$ID" >> "$GITHUB_OUTPUT"
 
   desktop:
     needs: create-release
@@ -98,9 +102,11 @@ jobs:
             echo "storeFile=$RUNNER_TEMP/jtune-release.jks"
           } > src-tauri/gen/android/keystore.properties
       - name: Build APK
-        env:
-          NDK_HOME: ${{ env.ANDROID_NDK_LATEST_HOME }}
-        run: bun run tauri android build --apk --target aarch64 armv7
+        # ANDROID_NDK_LATEST_HOME is a runner environment variable, not a workflow env value
+        run: |
+          export NDK_HOME="${ANDROID_NDK_LATEST_HOME:-$ANDROID_NDK_HOME}"
+          test -f "$NDK_HOME/source.properties"
+          bun run tauri android build --apk --target aarch64 armv7
       - name: Upload APK
         env:
           GH_TOKEN: ${{ github.token }}
