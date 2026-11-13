@@ -30,8 +30,8 @@ npx wrangler pages deploy dist --project-name xianzhun --branch main
 3. Commit, push, then tag:
 
    ```bash
-   git tag -a v0.3 -m "xianzhun v0.3"
-   git push origin v0.3
+   git tag -a v0.4 -m "xianzhun v0.4"
+   git push origin v0.4
    ```
 
 A full run takes about 15 minutes. To rebuild an existing tag, run the *Release* workflow manually from the Actions tab and enter the tag. It reuses the existing release and replaces its files.

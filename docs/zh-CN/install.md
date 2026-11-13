@@ -2,7 +2,7 @@
 
 [← README](../../README.zh-CN.md) · [English](../en/install.md)
 
-安装包在 [Releases](https://github.com/sundy-li/xianzhun/releases) 页面下载。文件名以应用名和版本号开头，例如 `xianzhun_<版本>_android.apk`。v0.2 及更早的版本用的是旧名字 `JTune_`。
+安装包在 [Releases](https://github.com/sundy-li/xianzhun/releases) 页面下载。文件名以应用名和版本号开头，例如 `xianzhun_<版本>_android.apk`。
 
 | 平台 | 文件 |
 |---|---|
@@ -36,7 +36,7 @@
 2. 应用没有经过 Apple 公证。如果提示「无法验证开发者」或「已损坏」，在终端执行下面的命令后再打开：
 
    ```bash
-   xattr -cr /Applications/xianzhun.app   # v0.2 及更早版本是 JTune.app
+   xattr -cr /Applications/xianzhun.app
    ```
 
 3. 系统询问时允许使用麦克风。

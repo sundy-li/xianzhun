@@ -30,8 +30,8 @@ npx wrangler pages deploy dist --project-name xianzhun --branch main
 3. 提交、推送，然后打标签：
 
    ```bash
-   git tag -a v0.3 -m "xianzhun v0.3"
-   git push origin v0.3
+   git tag -a v0.4 -m "xianzhun v0.4"
+   git push origin v0.4
    ```
 
 完整跑一次大约 15 分钟。要重新构建已有的标签，在 Actions 页面手动运行 *Release* workflow 并填入标签，它会复用已有的 Release 并覆盖其中的文件。
