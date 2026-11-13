@@ -34,15 +34,16 @@ export const SimulatorBar: React.FC<SimulatorBarProps> = ({
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-xs font-semibold text-amber-300">
           <SlidersHorizontal className="w-4 h-4 shrink-0" aria-hidden="true" />
-          <span>吉他信号模拟测试（直连 YIN 音高引擎）</span>
+          <span>试音模拟 · 不用吉他也能测试调音</span>
         </div>
         <button
           type="button"
           onClick={onStopSimulator}
-          aria-label="停止试音模拟"
-          className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-white/5"
+          aria-label="关闭试音模拟"
+          data-testid="btn-sim-close"
+          className="min-h-[44px] min-w-[44px] -my-2 -mr-2 flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-white/5"
         >
-          <X className="w-4 h-4" />
+          <X className="w-4 h-4" aria-hidden="true" />
         </button>
       </div>
 

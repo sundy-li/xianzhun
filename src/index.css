@@ -1,5 +1,7 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
+/* Desktop app shell: page fits the window, only the side pane scrolls. Shorter windows scroll normally. */
+@custom-variant desk (@media (min-width: 1024px) and (min-height: 780px));
 
 /* Semantic surface tokens (dark only). Use bg-surface / border-control etc. instead of raw hex. */
 @theme {
@@ -74,6 +76,12 @@
 /* Room for the fixed mobile tab bar (64px) plus the home indicator */
 .pb-tabbar {
   padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+}
+
+/* Quiet scrollbar for the desktop panes */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
 }
 
 @media (prefers-reduced-motion: reduce) {

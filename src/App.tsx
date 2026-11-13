@@ -2,15 +2,14 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Activity,
   AlertCircle,
+  ChevronDown,
   Guitar,
   Mic,
-  MicOff,
+  Pause,
   RotateCcw,
   Sliders,
   SlidersHorizontal,
-  Square,
   Timer,
-  Volume2,
 } from 'lucide-react';
 import { CalibrationPanel } from './components/CalibrationPanel';
 import { HeadstockPegboard } from './components/HeadstockPegboard';
@@ -30,7 +29,6 @@ import {
   TuningPreset,
   applyCapoToMidi,
   midiToFrequency,
-  midiToNoteDisplay,
   shiftStringMidi,
 } from './utils/musicTheory';
 import { referenceTonePlayer } from './utils/toneGenerator';
@@ -273,32 +271,20 @@ export default function App() {
     setPlayingString(null);
   }, []);
 
+  // Tapping a peg locks that string as the manual target and plays its reference tone.
   const handleSelectPeg = useCallback(
     (stringNumber: number) => {
-      if (persisted.isManualMode) {
-        setPersisted((prev) => ({ ...prev, selectedManualString: stringNumber }));
-        setSimStringNumber(stringNumber);
-      }
+      setPersisted((prev) => ({
+        ...prev,
+        isManualMode: true,
+        isChromatic: false,
+        selectedManualString: stringNumber,
+      }));
+      setSimStringNumber(stringNumber);
       playStringTone(stringNumber, false);
     },
-    [persisted.isManualMode, playStringTone]
+    [playStringTone]
   );
-
-  const manualStringSelectRef = React.useRef<HTMLSelectElement | null>(null);
-
-  // Open the string dropdown right after tapping "手动定弦". showPicker() needs the tap's user
-  // activation (still valid on the next frame); browsers without it just show the dropdown.
-  const openManualStringPicker = () => {
-    requestAnimationFrame(() => {
-      const select = manualStringSelectRef.current;
-      if (!select) return;
-      try {
-        (select as HTMLSelectElement & { showPicker?: () => void }).showPicker?.();
-      } catch {
-        select.focus();
-      }
-    });
-  };
 
   const handleToggleMode = (manual: boolean) => {
     stopReferenceTone();
@@ -385,37 +371,41 @@ export default function App() {
   };
 
   const activeHeaderSummary = persisted.isChromatic
-    ? `十二平均律 · A4 = ${persisted.a4Freq} Hz`
-    : `${activePreset.name}${isStringsModified ? ' (已微调)' : ''} · A4 = ${persisted.a4Freq} Hz${
-        persisted.capo > 0 ? ` · Capo +${persisted.capo}` : ''
+    ? `十二平均律 · ${persisted.a4Freq}Hz`
+    : `${activePreset.name}${isStringsModified ? '（已改）' : ''} · ${persisted.a4Freq}Hz${
+        persisted.capo > 0 ? ` · Capo ${persisted.capo}` : ''
       }`;
 
-  const selectedStringObj =
-    persisted.workingStrings.find((s) => s.stringNumber === persisted.selectedManualString) ??
-    persisted.workingStrings[0];
-  const selectedStringDisplay = midiToNoteDisplay(
-    applyCapoToMidi(selectedStringObj.midi, persisted.capo),
-    persisted.a4Freq,
-    persisted.preferFlats
-  );
+  const openTuningsPanel = () => {
+    setMobileTab('tunings');
+    setDesktopSideTab('tunings');
+  };
 
   return (
-    <div className="min-h-screen bg-app text-gray-100 flex flex-col">
-      {/* Compact Sticky Top Bar (52px mobile, 3-zone desktop) */}
-      <header className="sticky top-0 z-30 h-[52px] bg-app/90 backdrop-blur-md border-b border-white/[0.08] px-4 lg:px-8 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2.5 shrink-0">
-          <Guitar className="w-5 h-5 text-emerald-400 shrink-0" aria-hidden="true" />
-          <span className="font-display text-base sm:text-lg font-bold tracking-tight whitespace-nowrap">
-            弦准吉他调音器
-          </span>
-        </div>
-
-        {/* Unboxed clean metadata summary on tablet/desktop */}
-        <div className="hidden md:flex items-center gap-2 text-xs text-gray-400 font-mono-tabular truncate">
-          <span>{activeHeaderSummary}</span>
-        </div>
-
+    <div className="min-h-screen desk:h-dvh desk:min-h-0 desk:overflow-hidden bg-app text-gray-100 flex flex-col">
+      {/* Sticky top bar: brand, current tuning (tap to change), utility actions */}
+      <header className="sticky top-0 z-30 bg-app/90 backdrop-blur-md border-b border-white/[0.08] pt-safe">
+        <div className="h-14 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-3">
         <div className="flex items-center gap-2 shrink-0">
+          <Guitar className="w-5 h-5 text-emerald-400 shrink-0" aria-hidden="true" />
+          <h1 className="font-display text-base sm:text-lg font-bold tracking-tight whitespace-nowrap">
+            <span className="sm:hidden">弦准</span>
+            <span className="hidden sm:inline">弦准吉他调音器</span>
+          </h1>
+        </div>
+
+        <button
+          type="button"
+          onClick={openTuningsPanel}
+          data-testid="header-tuning-chip"
+          aria-label={`当前定弦：${activeHeaderSummary}，点击切换`}
+          className="min-w-0 h-9 flex items-center gap-1.5 rounded-full bg-raised border border-white/10 pl-3 pr-2 text-xs text-gray-300 hover:text-white hover:border-white/20 transition-colors"
+        >
+          <span className="truncate font-mono-tabular">{activeHeaderSummary}</span>
+          <ChevronDown className="w-3.5 h-3.5 shrink-0 text-gray-400" aria-hidden="true" />
+        </button>
+
+        <div className="ml-auto flex items-center gap-2 shrink-0">
           <PWAInstallButton variant="compact" />
           {audioState.tunedStrings.length > 0 && (
             <button
@@ -430,22 +420,11 @@ export default function App() {
             </button>
           )}
         </div>
+        </div>
       </header>
 
       {/* Main Responsive Workspace */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-24 lg:pb-10">
-        {/* Mobile Active Preset Summary */}
-        <div className="md:hidden mb-3 flex items-center justify-between gap-2 text-xs text-gray-400 font-mono-tabular">
-          <span className="truncate">{activeHeaderSummary}</span>
-          <button
-            type="button"
-            onClick={() => setMobileTab('tunings')}
-            className="text-emerald-400 font-medium whitespace-nowrap shrink-0"
-          >
-            切换定弦
-          </button>
-        </div>
-
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 lg:pt-5 pb-[calc(6rem+env(safe-area-inset-bottom))] lg:pb-5 desk:min-h-0 desk:flex desk:flex-col">
         {/* Microphone Error Banner with 1-tap Simulator Fallback */}
         {audioState.error && (
           <div
@@ -473,96 +452,17 @@ export default function App() {
             className="mb-4 w-full rounded-2xl bg-emerald-500/10 border border-emerald-500/30 p-3.5 flex items-center justify-center gap-2.5 text-sm text-emerald-100"
           >
             <Mic className="w-4 h-4 text-emerald-300 shrink-0" aria-hidden="true" />
-            <span>浏览器需要先点一下：轻触屏幕任意位置开始监听</span>
+            <span>轻触屏幕任意位置开始监听</span>
           </button>
         )}
 
-        {audioState.source === 'mic' && audioState.isClipping && (
-          <div
-            role="status"
-            data-testid="clipping-warning"
-            className="mb-4 rounded-2xl bg-amber-400/10 border border-amber-400/30 p-3.5 flex items-start gap-2.5 text-xs sm:text-sm text-amber-100"
-          >
-            <AlertCircle className="w-4 h-4 text-amber-300 shrink-0 mt-0.5" aria-hidden="true" />
-            <span>声音太大，麦克风已过载，读数可能跳动。请让手机离琴远一点，或弹轻一些。</span>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 desk:grid-rows-[minmax(0,1fr)] gap-5 lg:gap-6 items-start desk:items-stretch desk:flex-1 desk:min-h-0">
           {/* Left / Primary Column (Always visible on Desktop, visible on 'tuner' tab on Mobile) */}
           <div
-            className={`lg:col-span-7 space-y-4 ${
-              mobileTab === 'tuner' ? 'block' : 'hidden lg:block'
+            className={`relative lg:col-span-7 lg:sticky lg:top-[76px] desk:static desk:min-h-0 lg:flex-col desk:overflow-y-auto scroll-thin space-y-4 lg:space-y-0 lg:gap-2 ${
+              mobileTab === 'tuner' ? 'block lg:flex' : 'hidden lg:flex'
             }`}
           >
-            {/* Mode Switcher: Auto vs Manual */}
-            <div
-              role="tablist"
-              aria-label="调音模式切换"
-              className="grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-surface border border-white/[0.08]"
-            >
-              <button
-                type="button"
-                role="tab"
-                aria-selected={!persisted.isManualMode}
-                data-testid="mode-auto"
-                onClick={() => handleToggleMode(false)}
-                className={`min-h-[44px] rounded-xl text-sm font-semibold transition-colors whitespace-nowrap ${
-                  !persisted.isManualMode
-                    ? 'bg-emerald-500 text-slate-950 shadow-sm'
-                    : 'text-gray-300 hover:text-white'
-                }`}
-              >
-                自动调弦（智能识别）
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={persisted.isManualMode}
-                data-testid="mode-manual"
-                onClick={() => {
-                  handleToggleMode(true);
-                  openManualStringPicker();
-                }}
-                className={`min-h-[44px] rounded-xl text-sm font-semibold transition-colors whitespace-nowrap ${
-                  persisted.isManualMode
-                    ? 'bg-emerald-500 text-slate-950 shadow-sm'
-                    : 'text-gray-300 hover:text-white'
-                }`}
-              >
-                手动定弦（锁定音调）
-              </button>
-            </div>
-
-            {/* Target string picker, right under the mode switch so no scrolling to the headstock */}
-            {persisted.isManualMode && (
-              <label className="flex items-center gap-3 rounded-2xl bg-surface border border-white/[0.08] px-3.5 py-2">
-                <span className="text-sm text-gray-300 whitespace-nowrap">目标琴弦</span>
-                <select
-                  ref={manualStringSelectRef}
-                  data-testid="manual-string-select"
-                  value={persisted.selectedManualString}
-                  onChange={(e) => handleSelectPeg(Number(e.target.value))}
-                  className="flex-1 min-w-0 min-h-[44px] rounded-xl bg-control border border-white/10 px-3 text-sm font-semibold text-gray-100 font-mono-tabular [color-scheme:dark]"
-                >
-                  {[...persisted.workingStrings]
-                    .sort((a, b) => b.stringNumber - a.stringNumber)
-                    .map((s) => {
-                      const d = midiToNoteDisplay(
-                        applyCapoToMidi(s.midi, persisted.capo),
-                        persisted.a4Freq,
-                        persisted.preferFlats
-                      );
-                      return (
-                        <option key={s.stringNumber} value={s.stringNumber}>
-                          {s.stringNumber} 弦 · {d.fullLabel} · {d.frequency.toFixed(1)} Hz
-                        </option>
-                      );
-                    })}
-                </select>
-              </label>
-            )}
-
             {/* Precision Tuner Dial */}
             <TunerDial
               source={audioState.source}
@@ -579,76 +479,92 @@ export default function App() {
               capo={persisted.capo}
               preferFlats={persisted.preferFlats}
               waveformRef={waveformRef}
-            />
-
-            {/* Primary Audio & Reference Tone Action Controls */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {audioState.source === 'mic' ? (
+              isClipping={audioState.source === 'mic' && audioState.isClipping}
+              statusControl={
+                audioState.source === 'mic' ? (
+                  <button
+                    type="button"
+                    onClick={handleStopMic}
+                    data-testid="btn-mic-toggle"
+                    aria-label="暂停麦克风监听"
+                    className="min-h-[44px] -my-1.5 -ml-2.5 inline-flex items-center gap-1.5 rounded-full px-2.5 text-emerald-400 font-medium hover:bg-emerald-500/10 transition-colors"
+                  >
+                    <span className="relative flex w-2 h-2" aria-hidden="true">
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 motion-safe:animate-ping" />
+                      <span className="relative inline-flex w-2 h-2 rounded-full bg-emerald-400" />
+                    </span>
+                    监听中
+                    <Pause className="w-3.5 h-3.5 text-gray-400" aria-hidden="true" />
+                  </button>
+                ) : undefined
+              }
+              modeControl={
                 <button
                   type="button"
-                  onClick={handleStopMic}
-                  data-testid="btn-mic-toggle"
-                  className="min-h-[48px] flex items-center justify-center gap-2 rounded-xl bg-rose-500/20 border border-rose-500/40 px-4 text-sm font-semibold text-rose-200 hover:bg-rose-500/30 active:scale-[0.98] transition-all"
+                  role="switch"
+                  aria-checked={!persisted.isManualMode}
+                  aria-label="自动识别琴弦"
+                  data-testid="mode-switch"
+                  onClick={() => handleToggleMode(!persisted.isManualMode)}
+                  className="min-h-[44px] -my-1.5 -mr-1.5 inline-flex items-center gap-2 rounded-full pl-2.5 pr-1.5 hover:bg-white/[0.04] transition-colors"
                 >
-                  <MicOff className="w-4 h-4 shrink-0" aria-hidden="true" />
-                  <span>停止麦克风监听</span>
+                  <span
+                    className={`text-xs font-semibold ${
+                      persisted.isManualMode ? 'text-gray-400' : 'text-emerald-400'
+                    }`}
+                  >
+                    {persisted.isManualMode ? '手动' : '自动'}
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
+                      persisted.isManualMode ? 'bg-control-hover' : 'bg-emerald-500'
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${
+                        persisted.isManualMode ? 'translate-x-0' : 'translate-x-5'
+                      }`}
+                    />
+                  </span>
                 </button>
-              ) : (
+              }
+              className="desk:flex-1"
+              idleAction={
                 <button
                   type="button"
                   onClick={handleStartMic}
                   data-testid="btn-mic-toggle"
-                  className="min-h-[48px] flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 text-sm font-semibold text-slate-950 hover:bg-emerald-400 active:scale-[0.98] transition-all"
+                  className="min-h-[44px] inline-flex items-center justify-center gap-2 rounded-full bg-emerald-500 px-5 text-sm font-semibold text-slate-950 hover:bg-emerald-400 active:scale-[0.98] transition-[background-color,transform]"
                 >
                   <Mic className="w-4 h-4 shrink-0" aria-hidden="true" />
-                  <span>开启麦克风调音</span>
+                  开始监听
                 </button>
-              )}
-
-              {persisted.isManualMode && !persisted.isChromatic ? (
-                isLoopingTone ? (
-                  <button
-                    type="button"
-                    onClick={stopReferenceTone}
-                    data-testid="btn-reference-tone"
-                    className="min-h-[48px] flex items-center justify-center gap-2 rounded-xl bg-amber-400/20 border border-amber-400/50 px-4 text-sm font-semibold text-amber-200 hover:bg-amber-400/30 active:scale-[0.98] transition-all"
-                  >
-                    <Square className="w-4 h-4 shrink-0" aria-hidden="true" />
-                    <span>停止持续参考音 ({selectedStringDisplay.fullLabel})</span>
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => playStringTone(persisted.selectedManualString, true)}
-                    data-testid="btn-reference-tone"
-                    className="min-h-[48px] flex items-center justify-center gap-2 rounded-xl bg-control border border-white/10 px-4 text-sm font-semibold text-gray-100 hover:bg-control-hover active:scale-[0.98] transition-all"
-                  >
-                    <Volume2 className="w-4 h-4 shrink-0 text-amber-300" aria-hidden="true" />
-                    <span>持续播放参考音 ({selectedStringDisplay.fullLabel})</span>
-                  </button>
-                )
-              ) : audioState.source === 'simulator' ? (
-                <button
-                  type="button"
-                  onClick={handleStopSimulator}
-                  data-testid="btn-sim-toggle"
-                  className="min-h-[48px] flex items-center justify-center gap-2 rounded-xl bg-amber-400/20 border border-amber-400/50 px-4 text-sm font-semibold text-amber-200 hover:bg-amber-400/30 active:scale-[0.98] transition-all"
-                >
-                  <Square className="w-4 h-4 shrink-0" aria-hidden="true" />
-                  <span>关闭试音模拟</span>
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleStartSimulator}
-                  data-testid="btn-sim-toggle"
-                  className="min-h-[48px] flex items-center justify-center gap-2 rounded-xl bg-control border border-white/10 px-4 text-sm font-semibold text-gray-100 hover:bg-control-hover active:scale-[0.98] transition-all"
-                >
-                  <SlidersHorizontal className="w-4 h-4 shrink-0 text-amber-300" aria-hidden="true" />
-                  <span>内置吉他试音模拟</span>
-                </button>
-              )}
-            </div>
+              }
+            >
+              <HeadstockPegboard
+                strings={persisted.workingStrings}
+                a4Freq={persisted.a4Freq}
+                capo={persisted.capo}
+                preferFlats={persisted.preferFlats}
+                isManualMode={persisted.isManualMode}
+                isChromatic={persisted.isChromatic}
+                selectedManualString={persisted.selectedManualString}
+                activeDetectedString={
+                  audioState.isSignalActive ? audioState.match?.stringNumber ?? null : null
+                }
+                tunedStrings={audioState.tunedStrings}
+                playingString={playingString}
+                isLoopingTone={isLoopingTone}
+                onSelectString={handleSelectPeg}
+                onShiftStringPitch={handleShiftStringMidi}
+                onToggleLoopTone={() =>
+                  isLoopingTone
+                    ? stopReferenceTone()
+                    : playStringTone(persisted.selectedManualString, true)
+                }
+              />
+            </TunerDial>
 
             {/* Simulator Bar when simulator is active */}
             {audioState.source === 'simulator' && (
@@ -665,43 +581,26 @@ export default function App() {
               />
             )}
 
-            {/* Quick Simulator trigger when in Manual mode */}
-            {persisted.isManualMode && audioState.source !== 'simulator' && (
-              <div className="flex justify-end">
+            {/* Secondary entry: test without a guitar */}
+            {audioState.source !== 'simulator' && (
+              <div className="flex justify-center">
                 <button
                   type="button"
                   onClick={handleStartSimulator}
                   data-testid="btn-sim-toggle"
-                  className="text-xs text-gray-400 hover:text-amber-300 underline underline-offset-4 transition-colors"
+                  className="min-h-[44px] inline-flex items-center gap-1.5 px-3 text-xs text-gray-400 hover:text-amber-300 transition-colors"
                 >
-                  没有实体吉他？开启内置信号模拟测试
+                  <SlidersHorizontal className="w-3.5 h-3.5" aria-hidden="true" />
+                  没有吉他？试试内置试音模拟
                 </button>
               </div>
             )}
-
-            {/* Interactive 3+3 Guitar Headstock */}
-            <HeadstockPegboard
-              strings={persisted.workingStrings}
-              a4Freq={persisted.a4Freq}
-              capo={persisted.capo}
-              preferFlats={persisted.preferFlats}
-              isManualMode={persisted.isManualMode}
-              isChromatic={persisted.isChromatic}
-              selectedManualString={persisted.selectedManualString}
-              activeDetectedString={
-                audioState.isSignalActive ? audioState.match?.stringNumber ?? null : null
-              }
-              tunedStrings={audioState.tunedStrings}
-              playingString={playingString}
-              onSelectString={handleSelectPeg}
-              onShiftStringPitch={handleShiftStringMidi}
-            />
           </div>
 
           {/* Right / Studio Configuration Column (Desktop) & Mobile Sub-Tabs */}
-          <div className="lg:col-span-5 space-y-4">
+          <div className="lg:col-span-5 desk:min-h-0 lg:flex lg:flex-col lg:gap-4">
             {/* Desktop Studio Panel Tab Switcher */}
-            <div className="hidden lg:grid grid-cols-3 gap-1.5 p-1 rounded-2xl bg-surface border border-white/[0.08]">
+            <div className="hidden lg:grid shrink-0 grid-cols-3 gap-1.5 p-1 rounded-2xl bg-surface border border-white/[0.08]">
               <button
                 type="button"
                 onClick={() => setDesktopSideTab('tunings')}
@@ -740,6 +639,8 @@ export default function App() {
               </button>
             </div>
 
+            {/* Only this pane scrolls on desktop; the tuner stays in view */}
+            <div className="relative desk:flex-1 desk:min-h-0 desk:overflow-y-auto scroll-thin desk:-mr-2 desk:pr-2 desk:pb-6 desk:[mask-image:linear-gradient(to_bottom,black_calc(100%-24px),transparent)]">
             {/* Tunings & Manual Pitch Editor */}
             <div
               className={
@@ -828,6 +729,7 @@ export default function App() {
                   setPersisted((prev) => ({ ...prev, preferFlats }))
                 }
               />
+            </div>
             </div>
           </div>
         </div>

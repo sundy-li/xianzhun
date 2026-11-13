@@ -1,4 +1,4 @@
-弦准吉他调音器 JTune 首个版本。
+弦准吉他调音器 JTune v0.2：调音页和桌面网页布局重做。
 
 **在线使用（无需安装）**：https://xuanzhun.pages.dev ，支持添加到主屏幕，离线可用。
 
@@ -6,10 +6,10 @@
 
 | 平台 | 文件 |
 |---|---|
-| Android | `JTune_0.1.0_android.apk` |
-| macOS（Apple 芯片和 Intel 通用） | `JTune_0.1.0_universal.dmg` |
-| Windows | `JTune_0.1.0_x64-setup.exe` 或 `JTune_0.1.0_x64_en-US.msi` |
-| 静态网页 | `JTune_0.1.0_web.zip`（可部署到任意静态服务器，需 HTTPS 才能用麦克风） |
+| Android | `JTune_0.2.0_android.apk` |
+| macOS（Apple 芯片和 Intel 通用） | `JTune_0.2.0_universal.dmg` |
+| Windows | `JTune_0.2.0_x64-setup.exe` 或 `JTune_0.2.0_x64_en-US.msi` |
+| 静态网页 | `JTune_0.2.0_web.zip`（可部署到任意静态服务器，需 HTTPS 才能用麦克风） |
 
 ## 安装提示
 
@@ -17,9 +17,17 @@
 - **macOS**：应用没有经过 Apple 公证。首次打开如果提示"无法验证开发者"或"已损坏"，在终端执行 `xattr -cr /Applications/JTune.app` 后再打开。
 - **Windows**：安装包没有代码签名，SmartScreen 提示时点"更多信息" → "仍要运行"。
 
+## 本版更新
+
+- 调音表和琴头合成一张卡片，琴头参照 GuitarTuna 样式，左右各 3 个圆形弦钮
+- 右上角滑动开关切换自动 / 手动，默认自动；点任意弦钮即切到手动并播放参考音
+- 手动模式下可持续播放参考音、按半音调整目标音
+- 监听暂停 / 恢复、过载提示、试音模拟入口收进仪表盘，页面不再跳动
+- 桌面网页：调音表固定在屏幕上，只有右侧面板滚动；表盘加大
+
 ## 功能
 
-- 自动识别琴弦 / 手动锁定目标琴弦（下拉框选择）
+- 自动识别琴弦 / 点弦钮手动锁定目标琴弦
 - 打开即自动监听麦克风
 - YIN 音高检测 + 周期倍数精修，安静环境下误差通常小于 1 音分
 - 屏蔽冰箱、变压器等持续嗡声，麦克风过载提示

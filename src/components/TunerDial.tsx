@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { ArrowDown, ArrowUp, CheckCircle2, Lock, Radio } from 'lucide-react';
+import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, Radio } from 'lucide-react';
 import { InputSource } from '../hooks/useTunerAudio';
 import {
   TuningMatch,
@@ -22,6 +22,16 @@ interface TunerDialProps {
   capo: number;
   preferFlats: boolean;
   waveformRef: React.MutableRefObject<Float32Array>;
+  /** Shown in the top-left status slot (e.g. a pause/resume control). */
+  statusControl?: React.ReactNode;
+  /** Shown in the top-right slot (the auto/manual switch). */
+  modeControl?: React.ReactNode;
+  /** Replaces the guidance line while listening is paused (e.g. a start button). */
+  idleAction?: React.ReactNode;
+  isClipping?: boolean;
+  /** Rendered at the bottom of the same card (the headstock). */
+  children?: React.ReactNode;
+  className?: string;
 }
 
 export const TunerDial: React.FC<TunerDialProps> = ({
@@ -37,6 +47,12 @@ export const TunerDial: React.FC<TunerDialProps> = ({
   capo,
   preferFlats,
   waveformRef,
+  statusControl,
+  modeControl,
+  idleAction,
+  isClipping = false,
+  children,
+  className = '',
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -154,36 +170,28 @@ export const TunerDial: React.FC<TunerDialProps> = ({
       data-signal-active={isSignalActive ? 'true' : 'false'}
       data-locked={isLockedInTune ? 'true' : 'false'}
       data-direction={guidance?.direction ?? 'idle'}
-      className="relative rounded-2xl bg-surface border border-white/[0.08] p-4 sm:p-6 flex flex-col items-center"
+      className={`relative rounded-2xl bg-surface border border-white/[0.08] p-4 sm:p-6 lg:p-7 flex flex-col items-center ${className}`}
     >
-      {/* Top Status Line (Clean unboxed metadata) */}
-      <div className="w-full flex items-center justify-between text-xs text-gray-400 mb-2">
-        <div className="flex items-center gap-2">
-          {source !== 'idle' ? (
-            <span className="inline-flex items-center gap-1.5 text-emerald-400 font-medium">
-              <Radio className="w-3.5 h-3.5" aria-hidden="true" />
-              {source === 'mic' ? '麦克风实时监听中' : '内置吉他信号模拟中'}
-            </span>
-          ) : (
-            <span>待机中 · 点击下方开始调音</span>
-          )}
+      {/* Top status line: listening control on the left, auto/manual switch on the right */}
+      <div className="w-full min-h-[36px] flex items-center justify-between gap-3 text-xs text-gray-400 mb-1">
+        <div className="flex items-center gap-2 shrink-0">
+          {statusControl ??
+            (source !== 'idle' ? (
+              <span className="inline-flex items-center gap-1.5 text-emerald-400 font-medium">
+                <Radio className="w-3.5 h-3.5" aria-hidden="true" />
+                {source === 'mic' ? '监听中' : '模拟信号中'}
+              </span>
+            ) : (
+              <span>已暂停</span>
+            ))}
         </div>
-        <div className="flex items-center gap-1.5 font-mono-tabular">
-          {manualStringNumber !== null && !isChromatic ? (
-            <span className="inline-flex items-center gap-1 text-amber-300 font-medium">
-              <Lock className="w-3 h-3" aria-hidden="true" />
-              手动锁定 · 第 {manualStringNumber} 弦
-            </span>
-          ) : isChromatic ? (
-            <span>十二平均律全音域</span>
-          ) : (
-            <span>自动识别琴弦</span>
-          )}
-        </div>
+        <div className="flex items-center min-w-0">{modeControl}</div>
       </div>
 
+      {/* Body: vertically centered when the card is stretched to the viewport on desktop */}
+      <div className="w-full flex-1 flex flex-col items-center justify-center">
       {/* Precision SVG Arc Gauge */}
-      <div className="relative w-full max-w-[330px] aspect-[16/9] flex items-end justify-center mt-1">
+      <div className="relative w-full max-w-[330px] lg:max-w-[400px] aspect-[16/9] flex items-end justify-center mt-1">
         {(() => {
           const cx = 160;
           const cy = 158;
@@ -285,7 +293,7 @@ export const TunerDial: React.FC<TunerDialProps> = ({
         <div className="absolute bottom-2 flex flex-col items-center pointer-events-none">
           <div
             data-testid="detected-note"
-            className={`font-display text-5xl sm:text-6xl font-bold tracking-tight leading-none ${
+            className={`font-display text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-none ${
               isSignalActive || manualTargetDisplay ? 'text-gray-50' : 'text-gray-600'
             }`}
           >
@@ -302,13 +310,22 @@ export const TunerDial: React.FC<TunerDialProps> = ({
       {/* Explicit Guidance Strip (Icon + Text, WCAG AA contrast) */}
       <div
         data-testid="tuning-guidance"
-        className={`mt-2 min-h-[36px] flex items-center justify-center gap-2 text-sm font-semibold ${accentColor}`}
+        className={`mt-2 min-h-[44px] flex items-center justify-center gap-2 text-sm font-semibold ${accentColor}`}
       >
-        {!isSignalActive || !guidance ? (
+        {source === 'idle' && idleAction ? (
+          idleAction
+        ) : isClipping ? (
+          <span
+            role="status"
+            data-testid="clipping-warning"
+            className="inline-flex items-center gap-1.5 text-amber-300"
+          >
+            <AlertTriangle className="w-4 h-4 shrink-0" aria-hidden="true" />
+            声音过大，请离远些或弹轻些
+          </span>
+        ) : !isSignalActive || !guidance ? (
           <span className="text-gray-400 font-normal">
-            {source === 'idle'
-              ? '请点击“开启麦克风”或“试音模拟”并拨动琴弦'
-              : '正在等待稳定的琴弦音频信号…'}
+            {source === 'idle' ? '监听已暂停' : '拨动琴弦，或点弦钮听参考音'}
           </span>
         ) : guidance.direction === 'in-tune' ? (
           <>
@@ -335,7 +352,7 @@ export const TunerDial: React.FC<TunerDialProps> = ({
       </div>
 
       {/* Precision Telemetry Readout Row (Tabular Numerals) */}
-      <div className="w-full mt-4 pt-3.5 border-t border-white/[0.06] grid grid-cols-3 gap-2 text-center">
+      <div className="w-full mt-3 pt-3 border-t border-white/[0.06] grid grid-cols-3 gap-2 text-center">
         <div>
           <div className="text-[11px] text-gray-400">实测频率</div>
           <div data-testid="detected-freq" className="mt-0.5 font-mono-tabular text-sm font-semibold text-gray-100">
@@ -357,14 +374,17 @@ export const TunerDial: React.FC<TunerDialProps> = ({
       </div>
 
       {/* Live Micro-Oscilloscope Strip */}
-      <div className="w-full mt-3 rounded-xl bg-inset border border-white/[0.05] px-2 py-1">
+      <div className="w-full mt-2 rounded-lg bg-inset px-2">
         <canvas
           ref={canvasRef}
           width={480}
-          height={36}
-          className="w-full h-7 block"
+          height={28}
+          className="w-full h-5 block"
           aria-label="实时音频波形"
         />
+      </div>
+
+      {children && <div className="w-full mt-4">{children}</div>}
       </div>
     </section>
   );
