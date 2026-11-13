@@ -1,5 +1,27 @@
 # 弦准吉他调音器 (Guitar Tuner & Metronome)
 
+**在线使用**：<https://xuanzhun.pages.dev>（可添加到主屏幕，离线可用）
+**安装包**：Android / macOS / Windows 见 [Releases](https://github.com/sundy-li/JTune/releases)
+
+## 开发与发布
+
+```bash
+bun install
+bun run dev        # 本地开发 http://localhost:3000
+bun run test       # 单元测试
+bun run build      # 构建静态站点到 dist/
+
+# 发布：推送 v 开头的 tag，GitHub Actions 会构建 Android / macOS / Windows 安装包并创建 Release
+git tag v0.2 && git push origin v0.2
+
+# 部署网页到 Cloudflare Pages
+bun run build && npx wrangler pages deploy dist --project-name xuanzhun --branch main
+```
+
+桌面端和 Android 由 [Tauri 2](https://tauri.app) 打包（`src-tauri/`）。Android 发布签名的 keystore 保存在 GitHub Secrets（`ANDROID_KEY_BASE64`、`ANDROID_KEY_PASSWORD`、`ANDROID_KEY_ALIAS`）。
+
+---
+
 一款面向 **Android 移动设备（PWA 可安装应用）** 与桌面端设计的专业吉他调音器与节拍练习应用。采用 Web Audio API 实时采集音频，内置 **YIN 基频检测算法**、**自动识别 / 手动设定音调调弦**、**原声参考音合成**以及**高精度前瞻调度节拍器**。
 
 ---
