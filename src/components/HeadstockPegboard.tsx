@@ -1,5 +1,6 @@
 import React from 'react';
 import { Check, Minus, Plus, Square, Volume2 } from 'lucide-react';
+import { useI18n } from '../i18n';
 import {
   GuitarStringTarget,
   applyCapoToMidi,
@@ -131,6 +132,7 @@ export const HeadstockPegboard: React.FC<HeadstockPegboardProps> = ({
   onShiftStringPitch,
   onToggleLoopTone,
 }) => {
+  const { t } = useI18n();
   const getStringByNum = (num: number) =>
     strings.find((s) => s.stringNumber === num) ?? strings[0];
   const displayOf = (num: number) =>
@@ -152,7 +154,7 @@ export const HeadstockPegboard: React.FC<HeadstockPegboardProps> = ({
         key={num}
         type="button"
         onClick={() => onSelectString(num)}
-        aria-label={`第 ${num} 弦 ${display.fullLabel}，${display.frequency.toFixed(1)} Hz，点击切到手动并试听`}
+        aria-label={t.pegs.pegAria(num, display.fullLabel, display.frequency.toFixed(1))}
         aria-pressed={active}
         data-testid={`string-peg-${num}`}
         style={{ gridRow: row + 1, gridColumn: side === 'left' ? 1 : 3 }}
@@ -258,21 +260,21 @@ export const HeadstockPegboard: React.FC<HeadstockPegboardProps> = ({
             ) : (
               <Volume2 className="w-3.5 h-3.5 text-amber-300" aria-hidden="true" />
             )}
-            {isLoopingTone ? '停止参考音' : '持续参考音'}
+            {isLoopingTone ? t.pegs.stopTone : t.pegs.holdTone}
           </button>
 
-          <div className="flex items-center gap-1" role="group" aria-label="目标音高">
+          <div className="flex items-center gap-1" role="group" aria-label={t.pegs.targetPitchAria}>
             <button
               type="button"
               onClick={() => onShiftStringPitch(manualStr.stringNumber, -1)}
-              aria-label={`第 ${manualStr.stringNumber} 弦目标音降低半音`}
+              aria-label={t.pegs.semitoneDownAria(manualStr.stringNumber)}
               data-testid="manual-pitch-down"
               className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-control border border-white/10 text-gray-200 hover:bg-control-hover active:scale-95 transition-[background-color,transform]"
             >
               <Minus className="w-4 h-4" aria-hidden="true" />
             </button>
             <span className="min-w-[64px] text-center text-xs text-gray-400">
-              {manualStr.stringNumber} 弦{' '}
+              {t.pegs.stringLabel(manualStr.stringNumber)}{' '}
               <span className="font-mono-tabular font-semibold text-gray-100">
                 {manualDisplay.fullLabel}
               </span>
@@ -280,7 +282,7 @@ export const HeadstockPegboard: React.FC<HeadstockPegboardProps> = ({
             <button
               type="button"
               onClick={() => onShiftStringPitch(manualStr.stringNumber, 1)}
-              aria-label={`第 ${manualStr.stringNumber} 弦目标音升高半音`}
+              aria-label={t.pegs.semitoneUpAria(manualStr.stringNumber)}
               data-testid="manual-pitch-up"
               className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-control border border-white/10 text-gray-200 hover:bg-control-hover active:scale-95 transition-[background-color,transform]"
             >

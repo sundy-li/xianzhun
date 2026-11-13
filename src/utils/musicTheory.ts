@@ -33,8 +33,8 @@ export type TuningDirection = 'flat' | 'in-tune' | 'sharp';
 
 export interface TuningGuidance {
   direction: TuningDirection;
-  label: string;
-  actionHint: string;
+  /** More than 20 cents off: turn the peg further. */
+  isLarge: boolean;
 }
 
 const NOTE_NAMES_SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] as const;
@@ -266,25 +266,9 @@ export function matchGuitarString(
 }
 
 export function getTuningGuidance(cents: number, toleranceCents: number = 4): TuningGuidance {
-  if (Math.abs(cents) <= toleranceCents) {
-    return {
-      direction: 'in-tune',
-      label: '音准已校准',
-      actionHint: '保持当前弦钮位置',
-    };
-  }
-  if (cents < 0) {
-    return {
-      direction: 'flat',
-      label: '音偏低',
-      actionHint: Math.abs(cents) > 20 ? '大幅拧紧弦钮 ↑' : '微调拧紧弦钮 ↑',
-    };
-  }
-  return {
-    direction: 'sharp',
-    label: '音偏高',
-    actionHint: Math.abs(cents) > 20 ? '大幅放松弦钮 ↓' : '微调放松弦钮 ↓',
-  };
+  const isLarge = Math.abs(cents) > 20;
+  if (Math.abs(cents) <= toleranceCents) return { direction: 'in-tune', isLarge: false };
+  return { direction: cents < 0 ? 'flat' : 'sharp', isLarge };
 }
 
 export function getAllSelectableGuitarNotes(

@@ -43,7 +43,7 @@ test('computeTapTempoBpm calculates average BPM from tap intervals', () => {
 });
 
 test('getTempoMarking classifies tempo ranges properly', () => {
-  assert.ok(getTempoMarking(50).includes('广板'));
-  assert.ok(getTempoMarking(90).includes('中板'));
-  assert.ok(getTempoMarking(150).includes('快板'));
+  assert.equal(getTempoMarking(50), 'largo');
+  assert.equal(getTempoMarking(90), 'andante');
+  assert.equal(getTempoMarking(150), 'allegro');
 });

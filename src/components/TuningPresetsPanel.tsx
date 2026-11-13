@@ -7,6 +7,7 @@ import {
   getAllSelectableGuitarNotes,
   midiToNoteDisplay,
 } from '../utils/musicTheory';
+import { presetText, useI18n } from '../i18n';
 
 interface TuningPresetsPanelProps {
   activePresetId: string;
@@ -42,6 +43,7 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
   onDeleteCustomPreset,
 }) => {
   const [customName, setCustomName] = useState('');
+  const { t, lang } = useI18n();
   const [nameError, setNameError] = useState<string | null>(null);
 
   const selectableNotes = useMemo(
@@ -58,7 +60,7 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
     e.preventDefault();
     const trimmed = customName.trim();
     if (!trimmed) {
-      setNameError('请输入自定义调弦方案名称');
+      setNameError(t.tunings.nameRequired);
       return;
     }
     setNameError(null);
@@ -72,16 +74,16 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
       <section className="rounded-2xl bg-surface border border-white/[0.08] p-4">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h2 className="text-sm font-semibold text-gray-100">十二平均律（半音阶全音域）</h2>
+            <h2 className="text-sm font-semibold text-gray-100">{t.tunings.chromaticTitle}</h2>
             <p className="text-xs text-gray-400 mt-0.5">
-              开启后不限制特定吉他弦，自动匹配任意最近音名
+              {t.tunings.chromaticDesc}
             </p>
           </div>
           <button
             type="button"
             role="switch"
             aria-checked={isChromatic}
-            aria-label="切换十二平均律半音阶模式"
+            aria-label={t.tunings.chromaticAria}
             data-testid="chromatic-toggle"
             onClick={() => onToggleChromatic(!isChromatic)}
             className={`relative inline-flex h-8 w-14 shrink-0 items-center rounded-full border transition-colors ${
@@ -102,8 +104,8 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
       {/* Preset Library */}
       <section className="rounded-2xl bg-surface border border-white/[0.08] p-4">
         <div className="flex items-center justify-between gap-2 mb-3">
-          <h2 className="text-sm font-semibold text-gray-100">常用定弦方案</h2>
-          <span className="text-xs text-gray-400">共 {allPresets.length} 套</span>
+          <h2 className="text-sm font-semibold text-gray-100">{t.tunings.presetsTitle}</h2>
+          <span className="text-xs text-gray-400">{t.tunings.presetCount(allPresets.length)}</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
@@ -112,6 +114,7 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
             const noteSummary = preset.strings
               .map((s) => midiToNoteDisplay(s.midi, a4Freq, preferFlats).fullLabel)
               .join(' ');
+            const text = presetText(preset, t);
 
             return (
               <div
@@ -131,7 +134,7 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
                   <div className="w-full flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5 min-w-0">
                       <span className="text-sm font-semibold text-gray-100 truncate">
-                        {preset.name}
+                        {text.name}
                       </span>
                       {isSelected && (
                         <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" aria-hidden="true" />
@@ -142,7 +145,9 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
                     </span>
                   </div>
                   <div className="text-xs text-gray-400 leading-snug">
-                    {preset.englishName} · {preset.description}
+                    {lang === 'zh' && preset.category !== 'custom'
+                      ? `${preset.englishName} · ${text.description}`
+                      : text.description}
                   </div>
                 </button>
 
@@ -150,7 +155,7 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
                   <button
                     type="button"
                     onClick={() => onDeleteCustomPreset(preset.id)}
-                    aria-label={`删除自定义方案 ${preset.name}`}
+                    aria-label={t.tunings.deletePresetAria(preset.name)}
                     className="min-h-[44px] min-w-[44px] mr-1 flex items-center justify-center rounded-lg text-gray-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -166,9 +171,9 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
       <section className="rounded-2xl bg-surface border border-white/[0.08] p-4">
         <div className="flex items-center justify-between gap-2 mb-3">
           <div>
-            <h2 className="text-sm font-semibold text-gray-100">手动设定各弦音调</h2>
+            <h2 className="text-sm font-semibold text-gray-100">{t.tunings.editorTitle}</h2>
             <p className="text-xs text-gray-400 mt-0.5">
-              自由调节 1–6 弦目标音高，打造专属特殊调弦
+              {t.tunings.editorDesc}
             </p>
           </div>
           {isModified && (
@@ -178,7 +183,7 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
               className="min-h-[36px] flex items-center gap-1 rounded-lg bg-control border border-white/10 px-2.5 text-xs text-gray-300 hover:text-white transition-colors whitespace-nowrap shrink-0"
             >
               <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
-              <span>还原预设</span>
+              <span>{t.tunings.resetToPreset}</span>
             </button>
           )}
         </div>
@@ -193,7 +198,7 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
               >
                 <div className="min-w-0">
                   <div className="text-sm font-medium text-gray-100">
-                    第 {str.stringNumber} 弦
+                    {t.tunings.stringN(str.stringNumber)}
                   </div>
                   <div className="font-mono-tabular text-xs text-gray-400">
                     {display.frequency.toFixed(2)} Hz
@@ -204,7 +209,7 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
                   <button
                     type="button"
                     onClick={() => onShiftStringMidi(str.stringNumber, -1)}
-                    aria-label={`第 ${str.stringNumber} 弦降半音`}
+                    aria-label={t.tunings.semitoneDownAria(str.stringNumber)}
                     data-testid={`editor-minus-${str.stringNumber}`}
                     className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg bg-control border border-white/10 text-gray-200 hover:bg-control-hover active:scale-95 transition-all"
                   >
@@ -212,7 +217,7 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
                   </button>
 
                   <label className="sr-only" htmlFor={`string-select-${str.stringNumber}`}>
-                    第 {str.stringNumber} 弦音名
+                    {t.tunings.noteSelectLabel(str.stringNumber)}
                   </label>
                   <select
                     id={`string-select-${str.stringNumber}`}
@@ -231,7 +236,7 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
                   <button
                     type="button"
                     onClick={() => onShiftStringMidi(str.stringNumber, 1)}
-                    aria-label={`第 ${str.stringNumber} 弦升半音`}
+                    aria-label={t.tunings.semitoneUpAria(str.stringNumber)}
                     data-testid={`editor-plus-${str.stringNumber}`}
                     className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg bg-control border border-white/10 text-gray-200 hover:bg-control-hover active:scale-95 transition-all"
                   >
@@ -246,7 +251,7 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
         {/* Save Custom Preset Form */}
         <form onSubmit={handleSave} className="mt-4 pt-3 border-t border-white/[0.06]">
           <label htmlFor="custom-preset-name" className="block text-xs text-gray-400 mb-1.5">
-            保存当前自定义定弦
+            {t.tunings.saveLabel}
           </label>
           <div className="flex items-center gap-2">
             <input
@@ -257,7 +262,7 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
                 setCustomName(e.target.value);
                 if (nameError) setNameError(null);
               }}
-              placeholder="例如：指弹特殊调弦"
+              placeholder={t.tunings.savePlaceholder}
               maxLength={24}
               className="flex-1 min-h-[44px] rounded-xl bg-inset border border-white/15 px-3 text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-emerald-400"
             />
@@ -266,7 +271,7 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
               className="min-h-[44px] flex items-center gap-1.5 rounded-xl bg-emerald-500 px-4 text-sm font-semibold text-slate-950 hover:bg-emerald-400 active:scale-[0.98] transition-all whitespace-nowrap shrink-0"
             >
               <BookmarkPlus className="w-4 h-4" aria-hidden="true" />
-              <span>保存</span>
+              <span>{t.tunings.save}</span>
             </button>
           </div>
           {nameError && (

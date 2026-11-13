@@ -2,6 +2,7 @@ import React from 'react';
 import { Minus, Plus, RotateCcw } from 'lucide-react';
 import { DEFAULT_A4_FREQ, MAX_A4_FREQ, MIN_A4_FREQ } from '../utils/musicTheory';
 import { PWAInstallButton } from './PWAInstallButton';
+import { LANGS, useI18n } from '../i18n';
 
 interface CalibrationPanelProps {
   a4Freq: number;
@@ -25,16 +26,46 @@ export const CalibrationPanel: React.FC<CalibrationPanelProps> = ({
   onChangePreferFlats,
 }) => {
   const clampA4 = (val: number) => Math.max(MIN_A4_FREQ, Math.min(MAX_A4_FREQ, val));
+  const { t, lang, setLang } = useI18n();
 
   return (
     <div className="space-y-4">
+      {/* Interface language */}
+      <section className="rounded-2xl bg-surface border border-white/[0.08] p-4 flex items-center justify-between gap-4">
+        <div>
+          <h2 className="text-sm font-semibold text-gray-100">{t.calibration.languageTitle}</h2>
+          <p className="text-xs text-gray-400 mt-0.5">{t.calibration.languageDesc}</p>
+        </div>
+        <div
+          role="radiogroup"
+          aria-label={t.calibration.languageTitle}
+          className="flex items-center gap-1 p-1 rounded-xl bg-inset border border-white/[0.08]"
+        >
+          {LANGS.map((l) => (
+            <button
+              key={l}
+              type="button"
+              role="radio"
+              aria-checked={lang === l}
+              data-testid={`lang-${l}`}
+              onClick={() => setLang(l)}
+              className={`min-h-[36px] px-3 rounded-lg text-xs font-semibold transition-colors ${
+                lang === l ? 'bg-control-hover text-white' : 'text-gray-400 hover:text-gray-200'
+              }`}
+            >
+              {l === 'zh' ? '中文' : 'English'}
+            </button>
+          ))}
+        </div>
+      </section>
+
       {/* A4 Reference Calibration */}
       <section className="rounded-2xl bg-surface border border-white/[0.08] p-4">
         <div className="flex items-center justify-between gap-2">
           <div>
-            <h2 className="text-sm font-semibold text-gray-100">A4 基准音校准</h2>
+            <h2 className="text-sm font-semibold text-gray-100">{t.calibration.a4Title}</h2>
             <p className="text-xs text-gray-400 mt-0.5">
-              国际标准音高为 440 Hz，古典/管弦乐常用 442 Hz 或 432 Hz
+              {t.calibration.a4Desc}
             </p>
           </div>
           {a4Freq !== DEFAULT_A4_FREQ && (
@@ -44,7 +75,7 @@ export const CalibrationPanel: React.FC<CalibrationPanelProps> = ({
               className="min-h-[36px] flex items-center gap-1 rounded-lg bg-control px-2.5 text-xs text-gray-300 hover:text-white whitespace-nowrap shrink-0"
             >
               <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
-              <span>重置 440</span>
+              <span>{t.calibration.reset440}</span>
             </button>
           )}
         </div>
@@ -54,7 +85,7 @@ export const CalibrationPanel: React.FC<CalibrationPanelProps> = ({
             type="button"
             onClick={() => onChangeA4(clampA4(a4Freq - 1))}
             disabled={a4Freq <= MIN_A4_FREQ}
-            aria-label="降低 A4 基准频率 1 Hz"
+            aria-label={t.calibration.a4MinusAria}
             data-testid="a4-minus"
             className="min-h-[44px] min-w-[48px] flex items-center justify-center rounded-xl bg-control border border-white/10 text-gray-100 hover:bg-control-hover disabled:opacity-40"
           >
@@ -71,7 +102,7 @@ export const CalibrationPanel: React.FC<CalibrationPanelProps> = ({
             type="button"
             onClick={() => onChangeA4(clampA4(a4Freq + 1))}
             disabled={a4Freq >= MAX_A4_FREQ}
-            aria-label="升高 A4 基准频率 1 Hz"
+            aria-label={t.calibration.a4PlusAria}
             data-testid="a4-plus"
             className="min-h-[44px] min-w-[48px] flex items-center justify-center rounded-xl bg-control border border-white/10 text-gray-100 hover:bg-control-hover disabled:opacity-40"
           >
@@ -102,11 +133,11 @@ export const CalibrationPanel: React.FC<CalibrationPanelProps> = ({
       <section className="rounded-2xl bg-surface border border-white/[0.08] p-4">
         <div className="flex items-center justify-between gap-2 mb-3">
           <div>
-            <h2 className="text-sm font-semibold text-gray-100">变调夹（Capo）品位偏移</h2>
-            <p className="text-xs text-gray-400 mt-0.5">夹上变调夹后可直接按夹后空弦音高调音</p>
+            <h2 className="text-sm font-semibold text-gray-100">{t.calibration.capoTitle}</h2>
+            <p className="text-xs text-gray-400 mt-0.5">{t.calibration.capoDesc}</p>
           </div>
           <span className="font-mono-tabular text-xs font-semibold text-amber-300">
-            {capo === 0 ? '无变调夹' : `第 ${capo} 品`}
+            {capo === 0 ? t.calibration.noCapo : t.calibration.capoFret(capo)}
           </span>
         </div>
 
@@ -132,12 +163,12 @@ export const CalibrationPanel: React.FC<CalibrationPanelProps> = ({
       {/* Tolerance & Notation */}
       <section className="rounded-2xl bg-surface border border-white/[0.08] p-4 space-y-4">
         <div>
-          <h2 className="text-sm font-semibold text-gray-100">音准判定精度</h2>
+          <h2 className="text-sm font-semibold text-gray-100">{t.calibration.toleranceTitle}</h2>
           <div className="mt-2.5 grid grid-cols-3 gap-2">
             {[
-              { value: 2, label: '±2 ¢ 专业' },
-              { value: 4, label: '±4 ¢ 标准' },
-              { value: 8, label: '±8 ¢ 宽松' },
+              { value: 2, label: t.calibration.tolPro },
+              { value: 4, label: t.calibration.tolStandard },
+              { value: 8, label: t.calibration.tolLoose },
             ].map((opt) => (
               <button
                 key={opt.value}
@@ -157,8 +188,8 @@ export const CalibrationPanel: React.FC<CalibrationPanelProps> = ({
 
         <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between gap-4">
           <div>
-            <h2 className="text-sm font-semibold text-gray-100">半音记号偏好</h2>
-            <p className="text-xs text-gray-400 mt-0.5">切换升号（C#）或降号（Db）显示</p>
+            <h2 className="text-sm font-semibold text-gray-100">{t.calibration.notationTitle}</h2>
+            <p className="text-xs text-gray-400 mt-0.5">{t.calibration.notationDesc}</p>
           </div>
           <div className="flex items-center gap-1 p-1 rounded-xl bg-inset border border-white/[0.08]">
             <button
@@ -168,7 +199,7 @@ export const CalibrationPanel: React.FC<CalibrationPanelProps> = ({
                 !preferFlats ? 'bg-control-hover text-white' : 'text-gray-400 hover:text-gray-200'
               }`}
             >
-              升号 #
+              {t.calibration.sharps}
             </button>
             <button
               type="button"
@@ -177,7 +208,7 @@ export const CalibrationPanel: React.FC<CalibrationPanelProps> = ({
                 preferFlats ? 'bg-control-hover text-white' : 'text-gray-400 hover:text-gray-200'
               }`}
             >
-              降号 b
+              {t.calibration.flats}
             </button>
           </div>
         </div>
@@ -186,9 +217,9 @@ export const CalibrationPanel: React.FC<CalibrationPanelProps> = ({
       {/* Android PWA Install Card */}
       <section className="rounded-2xl bg-surface border border-white/[0.08] p-4 space-y-3">
         <div>
-          <h2 className="text-sm font-semibold text-gray-100">安装至 Android 手机桌面</h2>
+          <h2 className="text-sm font-semibold text-gray-100">{t.calibration.installTitle}</h2>
           <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-            本应用采用离线 PWA 架构，安装到 Android 手机后可全屏独立运行，无需网络即可随时调音。
+            {t.calibration.installDesc}
           </p>
         </div>
         <PWAInstallButton variant="card" />

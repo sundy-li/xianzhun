@@ -8,6 +8,7 @@ import {
   applyCapoToMidi,
   GuitarStringTarget,
 } from '../utils/musicTheory';
+import { useI18n } from '../i18n';
 
 interface TunerDialProps {
   source: InputSource;
@@ -54,6 +55,7 @@ export const TunerDial: React.FC<TunerDialProps> = ({
   children,
   className = '',
 }) => {
+  const { t } = useI18n();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Draw crisp live oscillogram waveform on canvas
@@ -121,6 +123,13 @@ export const TunerDial: React.FC<TunerDialProps> = ({
 
   const guidance =
     match && isSignalActive ? getTuningGuidance(match.cents, toleranceCents) : null;
+  const guidanceText = !guidance
+    ? ''
+    : guidance.direction === 'in-tune'
+      ? `${t.dial.inTune} · ${t.dial.inTuneHint}`
+      : guidance.direction === 'flat'
+        ? `${t.dial.flat} · ${guidance.isLarge ? t.dial.tightenLarge : t.dial.tightenSmall}`
+        : `${t.dial.sharp} · ${guidance.isLarge ? t.dial.loosenLarge : t.dial.loosenSmall}`;
 
   const noteText =
     match && isSignalActive
@@ -165,7 +174,7 @@ export const TunerDial: React.FC<TunerDialProps> = ({
 
   return (
     <section
-      aria-label="音准仪表盘"
+      aria-label={t.dial.aria}
       data-testid="tuner-dial"
       data-signal-active={isSignalActive ? 'true' : 'false'}
       data-locked={isLockedInTune ? 'true' : 'false'}
@@ -179,10 +188,10 @@ export const TunerDial: React.FC<TunerDialProps> = ({
             (source !== 'idle' ? (
               <span className="inline-flex items-center gap-1.5 text-emerald-400 font-medium">
                 <Radio className="w-3.5 h-3.5" aria-hidden="true" />
-                {source === 'mic' ? '监听中' : '模拟信号中'}
+                {source === 'mic' ? t.app.listening : t.dial.simulating}
               </span>
             ) : (
-              <span>已暂停</span>
+              <span>{t.dial.paused}</span>
             ))}
         </div>
         <div className="flex items-center min-w-0">{modeControl}</div>
@@ -301,7 +310,7 @@ export const TunerDial: React.FC<TunerDialProps> = ({
           </div>
           {match?.stringNumber && isSignalActive && (
             <span className="mt-1.5 text-xs font-medium text-gray-400">
-              第 {match.stringNumber} 弦
+              {t.dial.stringN(match.stringNumber)}
             </span>
           )}
         </div>
@@ -321,32 +330,26 @@ export const TunerDial: React.FC<TunerDialProps> = ({
             className="inline-flex items-center gap-1.5 text-amber-300"
           >
             <AlertTriangle className="w-4 h-4 shrink-0" aria-hidden="true" />
-            声音过大，请离远些或弹轻些
+            {t.dial.clipping}
           </span>
         ) : !isSignalActive || !guidance ? (
           <span className="text-gray-400 font-normal">
-            {source === 'idle' ? '监听已暂停' : '拨动琴弦，或点弦钮听参考音'}
+            {source === 'idle' ? t.dial.listeningPaused : t.dial.prompt}
           </span>
         ) : guidance.direction === 'in-tune' ? (
           <>
             <CheckCircle2 className="w-4 h-4 shrink-0" aria-hidden="true" />
-            <span>
-              {guidance.label} · {guidance.actionHint}
-            </span>
+            <span>{guidanceText}</span>
           </>
         ) : guidance.direction === 'flat' ? (
           <>
             <ArrowUp className="w-4 h-4 shrink-0" aria-hidden="true" />
-            <span>
-              {guidance.label} · {guidance.actionHint}
-            </span>
+            <span>{guidanceText}</span>
           </>
         ) : (
           <>
             <ArrowDown className="w-4 h-4 shrink-0" aria-hidden="true" />
-            <span>
-              {guidance.label} · {guidance.actionHint}
-            </span>
+            <span>{guidanceText}</span>
           </>
         )}
       </div>
@@ -354,19 +357,19 @@ export const TunerDial: React.FC<TunerDialProps> = ({
       {/* Precision Telemetry Readout Row (Tabular Numerals) */}
       <div className="w-full mt-3 pt-3 border-t border-white/[0.06] grid grid-cols-3 gap-2 text-center">
         <div>
-          <div className="text-[11px] text-gray-400">实测频率</div>
+          <div className="text-[11px] text-gray-400">{t.dial.detected}</div>
           <div data-testid="detected-freq" className="mt-0.5 font-mono-tabular text-sm font-semibold text-gray-100">
             {detectedFreqText}
           </div>
         </div>
         <div>
-          <div className="text-[11px] text-gray-400">音分偏差</div>
+          <div className="text-[11px] text-gray-400">{t.dial.cents}</div>
           <div data-testid="detected-cents" className={`mt-0.5 font-mono-tabular text-sm font-semibold ${accentColor}`}>
             {centsFormatted}
           </div>
         </div>
         <div>
-          <div className="text-[11px] text-gray-400">目标频率</div>
+          <div className="text-[11px] text-gray-400">{t.dial.target}</div>
           <div data-testid="target-freq" className="mt-0.5 font-mono-tabular text-sm font-semibold text-gray-300">
             {targetFreqText}
           </div>
@@ -380,7 +383,7 @@ export const TunerDial: React.FC<TunerDialProps> = ({
           width={480}
           height={28}
           className="w-full h-5 block"
-          aria-label="实时音频波形"
+          aria-label={t.dial.waveformAria}
         />
       </div>
 

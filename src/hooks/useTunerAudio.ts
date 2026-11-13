@@ -16,6 +16,8 @@ import {
 import { ClippingMonitor, SignalGate } from '../utils/signalGate';
 
 export type InputSource = 'idle' | 'mic' | 'simulator';
+/** Why the microphone could not start; the UI turns it into a message. */
+export type MicError = 'unsupported' | 'denied' | 'notFound';
 
 export interface TunerAudioState {
   source: InputSource;
@@ -28,7 +30,7 @@ export interface TunerAudioState {
   isClipping: boolean;
   /** Browser autoplay policy keeps audio suspended until the user taps the page. */
   needsUserGesture: boolean;
-  error: string | null;
+  error: MicError | null;
   tunedStrings: number[];
 }
 
@@ -325,7 +327,7 @@ export function useTunerAudio(options: UseTunerAudioOptions) {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       setState((prev) => ({
         ...prev,
-        error: '当前浏览器环境不支持麦克风音频采集，请使用“试音模拟”或更换 Chrome / Android WebView。',
+        error: 'unsupported',
       }));
       return;
     }
@@ -432,10 +434,8 @@ export function useTunerAudio(options: UseTunerAudioOptions) {
       rafRef.current = requestAnimationFrame(loop);
     } catch (err) {
       if (startId !== startIdRef.current) return;
-      const message =
-        err instanceof Error && err.name === 'NotAllowedError'
-          ? '麦克风权限被拒绝。请在浏览器或系统设置中允许麦克风访问，或点击“试音模拟”体验自动识别。'
-          : '未检测到可用麦克风设备。您可以使用下方的“试音模拟”或手动“听音定弦”功能。';
+      const message: MicError =
+        err instanceof Error && err.name === 'NotAllowedError' ? 'denied' : 'notFound';
       setState((prev) => ({ ...prev, source: 'idle', error: message }));
     }
   }, [processBuffer, stopAll]);

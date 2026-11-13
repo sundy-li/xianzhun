@@ -1,6 +1,7 @@
 import React from 'react';
 import { SlidersHorizontal, X } from 'lucide-react';
 import { GuitarStringTarget, applyCapoToMidi, midiToNoteDisplay } from '../utils/musicTheory';
+import { useI18n } from '../i18n';
 
 interface SimulatorBarProps {
   strings: GuitarStringTarget[];
@@ -25,21 +26,22 @@ export const SimulatorBar: React.FC<SimulatorBarProps> = ({
   onChangeSimDetune,
   onStopSimulator,
 }) => {
+  const { t } = useI18n();
   return (
     <section
-      aria-label="内置吉他信号模拟器"
+      aria-label={t.simulator.aria}
       data-testid="simulator-bar"
       className="rounded-2xl bg-surface border border-amber-500/30 p-4 space-y-3"
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-xs font-semibold text-amber-300">
           <SlidersHorizontal className="w-4 h-4 shrink-0" aria-hidden="true" />
-          <span>试音模拟 · 不用吉他也能测试调音</span>
+          <span>{t.simulator.title}</span>
         </div>
         <button
           type="button"
           onClick={onStopSimulator}
-          aria-label="关闭试音模拟"
+          aria-label={t.simulator.closeAria}
           data-testid="btn-sim-close"
           className="min-h-[44px] min-w-[44px] -my-2 -mr-2 flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-white/5"
         >
@@ -64,7 +66,7 @@ export const SimulatorBar: React.FC<SimulatorBarProps> = ({
                   : 'bg-inset border-white/10 text-gray-300 hover:bg-control'
               }`}
             >
-              {s.stringNumber}弦 {disp.noteName}
+              {t.simulator.stringNote(s.stringNumber, disp.noteName)}
             </button>
           );
         })}
@@ -74,7 +76,7 @@ export const SimulatorBar: React.FC<SimulatorBarProps> = ({
       <div className="space-y-2">
         <div className="flex items-center justify-between text-xs">
           <label htmlFor="sim-detune-slider" className="text-gray-400">
-            模拟弦钮松紧偏差
+            {t.simulator.detune}
           </label>
           <span className="font-mono-tabular font-semibold text-gray-100">
             {simDetuneCents > 0 ? `+${simDetuneCents}` : simDetuneCents} ¢
@@ -97,7 +99,7 @@ export const SimulatorBar: React.FC<SimulatorBarProps> = ({
             data-testid="sim-detune-flat"
             className="min-h-[36px] rounded-lg bg-control text-xs text-amber-300 hover:bg-control-hover"
           >
-            偏低 -22¢
+            {t.simulator.flat}
           </button>
           <button
             type="button"
@@ -105,7 +107,7 @@ export const SimulatorBar: React.FC<SimulatorBarProps> = ({
             data-testid="sim-detune-zero"
             className="min-h-[36px] rounded-lg bg-control text-xs text-emerald-300 hover:bg-control-hover"
           >
-            精准 0¢
+            {t.simulator.exact}
           </button>
           <button
             type="button"
@@ -113,7 +115,7 @@ export const SimulatorBar: React.FC<SimulatorBarProps> = ({
             data-testid="sim-detune-sharp"
             className="min-h-[36px] rounded-lg bg-control text-xs text-rose-300 hover:bg-control-hover"
           >
-            偏高 +24¢
+            {t.simulator.sharp}
           </button>
         </div>
       </div>

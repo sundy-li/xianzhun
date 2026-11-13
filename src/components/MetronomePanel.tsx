@@ -10,6 +10,7 @@ import {
   getBeatEmphasis,
   getTempoMarking,
 } from '../utils/metronome';
+import { useI18n } from '../i18n';
 
 interface MetronomePanelProps {
   bpm: number;
@@ -37,6 +38,7 @@ export const MetronomePanel: React.FC<MetronomePanelProps> = ({
   onTogglePlay,
 }) => {
   const tapTimesRef = useRef<number[]>([]);
+  const { t } = useI18n();
 
   const handleTapTempo = () => {
     const now = performance.now();
@@ -56,23 +58,23 @@ export const MetronomePanel: React.FC<MetronomePanelProps> = ({
     <div className="space-y-4">
       {/* Beat Pulse Visualizer + BPM Hero */}
       <section
-        aria-label="节拍器控制面板"
+        aria-label={t.metronome.panelAria}
         data-testid="metronome-panel"
         data-playing={isPlaying ? 'true' : 'false'}
         className="rounded-2xl bg-surface border border-white/[0.08] p-4 sm:p-5 space-y-4"
       >
         <div className="flex items-center justify-between gap-2 text-xs text-gray-400">
           <span className="font-medium text-gray-300">
-            节拍练习 · {timeSignature.label} 拍
+            {t.metronome.header(timeSignature.label)}
           </span>
           <span data-testid="metronome-bar-counter" className="font-mono-tabular">
-            {isPlaying ? `第 ${barNumber} 小节` : getTempoMarking(bpm)}
+            {isPlaying ? t.metronome.barN(barNumber) : t.metronome.tempo[getTempoMarking(bpm)]}
           </span>
         </div>
 
         {/* Visual Beat Indicators */}
         <div
-          aria-label="实时节拍指示"
+          aria-label={t.metronome.beatsAria}
           className="grid gap-2"
           style={{ gridTemplateColumns: `repeat(${timeSignature.beatsPerBar}, minmax(0, 1fr))` }}
         >
@@ -101,7 +103,7 @@ export const MetronomePanel: React.FC<MetronomePanelProps> = ({
               >
                 <span className="font-mono-tabular text-sm font-bold">{idx + 1}</span>
                 <span className="text-[10px] font-medium">
-                  {isStrong ? '强' : isSecondary ? '次强' : '弱'}
+                  {isStrong ? t.metronome.strong : isSecondary ? t.metronome.secondary : t.metronome.weak}
                 </span>
               </div>
             );
@@ -119,12 +121,12 @@ export const MetronomePanel: React.FC<MetronomePanelProps> = ({
             </span>
             <span className="font-mono-tabular text-sm font-medium text-gray-400">BPM</span>
           </div>
-          <span className="text-xs text-gray-400 mt-1">{getTempoMarking(bpm)}</span>
+          <span className="text-xs text-gray-400 mt-1">{t.metronome.tempo[getTempoMarking(bpm)]}</span>
 
           {/* Slider */}
           <div className="w-full mt-4">
             <label htmlFor="metronome-bpm-slider" className="sr-only">
-              节拍速度 BPM
+              {t.metronome.bpmSliderLabel}
             </label>
             <input
               id="metronome-bpm-slider"
@@ -149,7 +151,7 @@ export const MetronomePanel: React.FC<MetronomePanelProps> = ({
               type="button"
               onClick={() => onChangeBpm(clampBpm(bpm - 5))}
               disabled={bpm <= MIN_BPM}
-              aria-label="降低 5 BPM"
+              aria-label={t.metronome.minusAria(5)}
               data-testid="bpm-minus-5"
               className="min-h-[44px] rounded-xl bg-control border border-white/10 text-xs font-mono-tabular font-semibold text-gray-200 hover:bg-control-hover disabled:opacity-40"
             >
@@ -159,7 +161,7 @@ export const MetronomePanel: React.FC<MetronomePanelProps> = ({
               type="button"
               onClick={() => onChangeBpm(clampBpm(bpm - 1))}
               disabled={bpm <= MIN_BPM}
-              aria-label="降低 1 BPM"
+              aria-label={t.metronome.minusAria(1)}
               data-testid="bpm-minus-1"
               className="min-h-[44px] flex items-center justify-center rounded-xl bg-control border border-white/10 text-gray-200 hover:bg-control-hover disabled:opacity-40"
             >
@@ -168,18 +170,18 @@ export const MetronomePanel: React.FC<MetronomePanelProps> = ({
             <button
               type="button"
               onClick={handleTapTempo}
-              aria-label="点击测速打拍"
+              aria-label={t.metronome.tapAria}
               data-testid="btn-tap-tempo"
               className="min-h-[44px] flex items-center justify-center gap-1 rounded-xl bg-control border border-white/10 px-2 text-xs font-semibold text-amber-300 hover:bg-control-hover active:scale-95 transition-all whitespace-nowrap"
             >
               <Hand className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-              <span>测速</span>
+              <span>{t.metronome.tap}</span>
             </button>
             <button
               type="button"
               onClick={() => onChangeBpm(clampBpm(bpm + 1))}
               disabled={bpm >= MAX_BPM}
-              aria-label="升高 1 BPM"
+              aria-label={t.metronome.plusAria(1)}
               data-testid="bpm-plus-1"
               className="min-h-[44px] flex items-center justify-center rounded-xl bg-control border border-white/10 text-gray-200 hover:bg-control-hover disabled:opacity-40"
             >
@@ -189,7 +191,7 @@ export const MetronomePanel: React.FC<MetronomePanelProps> = ({
               type="button"
               onClick={() => onChangeBpm(clampBpm(bpm + 5))}
               disabled={bpm >= MAX_BPM}
-              aria-label="升高 5 BPM"
+              aria-label={t.metronome.plusAria(5)}
               data-testid="bpm-plus-5"
               className="min-h-[44px] rounded-xl bg-control border border-white/10 text-xs font-mono-tabular font-semibold text-gray-200 hover:bg-control-hover disabled:opacity-40"
             >
@@ -212,12 +214,12 @@ export const MetronomePanel: React.FC<MetronomePanelProps> = ({
           {isPlaying ? (
             <>
               <Square className="w-4 h-4 shrink-0" aria-hidden="true" />
-              <span>停止节拍器</span>
+              <span>{t.metronome.stop}</span>
             </>
           ) : (
             <>
               <Play className="w-4 h-4 shrink-0" aria-hidden="true" />
-              <span>开始节拍器</span>
+              <span>{t.metronome.start}</span>
             </>
           )}
         </button>
@@ -226,8 +228,8 @@ export const MetronomePanel: React.FC<MetronomePanelProps> = ({
       {/* Time Signature Selector */}
       <section className="rounded-2xl bg-surface border border-white/[0.08] p-4 space-y-3">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold text-gray-100">节拍类型（拍号）</h2>
-          <span className="text-xs text-gray-400">{timeSignature.description}</span>
+          <h2 className="text-sm font-semibold text-gray-100">{t.metronome.timeSigTitle}</h2>
+          <span className="text-xs text-gray-400 text-right">{t.metronome.timeSigDesc[timeSignature.id]}</span>
         </div>
 
         <div className="grid grid-cols-3 gap-2">
@@ -257,15 +259,15 @@ export const MetronomePanel: React.FC<MetronomePanelProps> = ({
           <div className="flex items-center gap-2.5">
             <Volume2 className="w-4 h-4 text-amber-300 shrink-0" aria-hidden="true" />
             <div>
-              <div className="text-sm font-medium text-gray-100">第一拍强音提示</div>
-              <div className="text-xs text-gray-400">清晰区分每小节首拍与弱拍</div>
+              <div className="text-sm font-medium text-gray-100">{t.metronome.accentTitle}</div>
+              <div className="text-xs text-gray-400">{t.metronome.accentDesc}</div>
             </div>
           </div>
           <button
             type="button"
             role="switch"
             aria-checked={accentFirstBeat}
-            aria-label="切换第一拍强音提示"
+            aria-label={t.metronome.accentAria}
             data-testid="metronome-accent-toggle"
             onClick={() => onChangeAccentFirstBeat(!accentFirstBeat)}
             className={`relative inline-flex h-8 w-14 shrink-0 items-center rounded-full border transition-colors ${

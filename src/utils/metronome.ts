@@ -4,7 +4,6 @@ export interface TimeSignature {
   beatsPerBar: number;
   beatUnit: 4 | 8;
   secondaryAccents: number[]; // 0-based beat indices that get secondary emphasis (e.g., beat 3 in 6/8)
-  description: string;
 }
 
 export type BeatEmphasis = 'accent' | 'secondary' | 'normal';
@@ -20,7 +19,6 @@ export const TIME_SIGNATURES: TimeSignature[] = [
     beatsPerBar: 4,
     beatUnit: 4,
     secondaryAccents: [],
-    description: '标准四四拍 · 流行与摇滚常用',
   },
   {
     id: '3/4',
@@ -28,7 +26,6 @@ export const TIME_SIGNATURES: TimeSignature[] = [
     beatsPerBar: 3,
     beatUnit: 4,
     secondaryAccents: [],
-    description: '三四拍 · 民谣分解与华尔兹',
   },
   {
     id: '2/4',
@@ -36,7 +33,6 @@ export const TIME_SIGNATURES: TimeSignature[] = [
     beatsPerBar: 2,
     beatUnit: 4,
     secondaryAccents: [],
-    description: '二四拍 · 轻快行进节奏',
   },
   {
     id: '6/8',
@@ -44,7 +40,6 @@ export const TIME_SIGNATURES: TimeSignature[] = [
     beatsPerBar: 6,
     beatUnit: 8,
     secondaryAccents: [3],
-    description: '六八拍 · 抒情摇摆与慢摇滚',
   },
   {
     id: '5/4',
@@ -52,7 +47,6 @@ export const TIME_SIGNATURES: TimeSignature[] = [
     beatsPerBar: 5,
     beatUnit: 4,
     secondaryAccents: [3],
-    description: '五四拍 · 奇数复合节拍练习',
   },
   {
     id: '7/8',
@@ -60,7 +54,6 @@ export const TIME_SIGNATURES: TimeSignature[] = [
     beatsPerBar: 7,
     beatUnit: 8,
     secondaryAccents: [2, 4],
-    description: '七八拍 · 前卫奇数拍练习',
   },
 ];
 
@@ -92,14 +85,16 @@ export function getBeatEmphasis(
   return 'normal';
 }
 
-export function getTempoMarking(bpm: number): string {
+export type TempoMarking = 'largo' | 'adagio' | 'andante' | 'allegretto' | 'allegro' | 'presto';
+
+export function getTempoMarking(bpm: number): TempoMarking {
   const safe = clampBpm(bpm);
-  if (safe < 60) return 'Largo · 广板';
-  if (safe < 76) return 'Adagio · 柔板';
-  if (safe < 108) return 'Andante / Moderato · 行板至中板';
-  if (safe < 132) return 'Allegretto · 小快板';
-  if (safe < 168) return 'Allegro · 快板';
-  return 'Presto · 急板';
+  if (safe < 60) return 'largo';
+  if (safe < 76) return 'adagio';
+  if (safe < 108) return 'andante';
+  if (safe < 132) return 'allegretto';
+  if (safe < 168) return 'allegro';
+  return 'presto';
 }
 
 export function computeTapTempoBpm(timestampsMs: number[]): number | null {

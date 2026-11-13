@@ -23,6 +23,7 @@ import { TunerDial } from './components/TunerDial';
 import { TuningPresetsPanel } from './components/TuningPresetsPanel';
 import { useTunerAudio } from './hooks/useTunerAudio';
 import { useWakeLock } from './hooks/useWakeLock';
+import { presetText, useI18n } from './i18n';
 import { DEFAULT_BPM, getTimeSignatureById } from './utils/metronome';
 import { MetronomeEngine } from './utils/metronomeEngine';
 import {
@@ -102,6 +103,7 @@ function loadInitialState(): PersistedState {
 }
 
 export default function App() {
+  const { t, lang, setLang } = useI18n();
   const [persisted, setPersisted] = useState<PersistedState>(loadInitialState);
   const [mobileTab, setMobileTab] = useState<MobileTab>('tuner');
   const [desktopSideTab, setDesktopSideTab] = useState<DesktopSideTab>('tunings');
@@ -366,7 +368,7 @@ export default function App() {
       name,
       englishName: 'Custom',
       category: 'custom',
-      description: '用户手动设定的自定义定弦方案',
+      description: '',
       strings: persisted.workingStrings.map((s) => ({ ...s })),
     };
     setPersisted((prev) => ({
@@ -392,8 +394,8 @@ export default function App() {
   };
 
   const activeHeaderSummary = persisted.isChromatic
-    ? `十二平均律 · ${persisted.a4Freq}Hz`
-    : `${activePreset.name}${isStringsModified ? '（已改）' : ''} · ${persisted.a4Freq}Hz${
+    ? t.app.chromaticSummary(persisted.a4Freq)
+    : `${presetText(activePreset, t).name}${isStringsModified ? t.app.modifiedSuffix : ''} · ${persisted.a4Freq}Hz${
         persisted.capo > 0 ? ` · Capo ${persisted.capo}` : ''
       }`;
 
@@ -410,8 +412,8 @@ export default function App() {
         <div className="flex items-center gap-2 shrink-0">
           <Guitar className="w-5 h-5 text-emerald-400 shrink-0" aria-hidden="true" />
           <h1 className="font-display text-base sm:text-lg font-bold tracking-tight whitespace-nowrap">
-            <span className="sm:hidden">弦准</span>
-            <span className="hidden sm:inline">弦准吉他调音器</span>
+            <span className="sm:hidden">{t.app.brandShort}</span>
+            <span className="hidden sm:inline">{t.app.brandFull}</span>
           </h1>
         </div>
 
@@ -419,7 +421,7 @@ export default function App() {
           type="button"
           onClick={openTuningsPanel}
           data-testid="header-tuning-chip"
-          aria-label={`当前定弦：${activeHeaderSummary}，点击切换`}
+          aria-label={t.app.tuningChipAria(activeHeaderSummary)}
           className="min-w-0 h-9 flex items-center gap-1.5 rounded-full bg-raised border border-white/10 pl-3 pr-2 text-xs text-gray-300 hover:text-white hover:border-white/20 transition-colors"
         >
           <span className="truncate font-mono-tabular">{activeHeaderSummary}</span>
@@ -427,16 +429,25 @@ export default function App() {
         </button>
 
         <div className="ml-auto flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={() => setLang(lang === 'zh' ? 'en' : 'zh')}
+            aria-label={t.app.switchLanguageAria}
+            data-testid="header-lang-toggle"
+            className="min-h-[36px] min-w-[40px] rounded-lg bg-raised border border-white/10 px-2 text-xs font-semibold text-gray-300 hover:text-white"
+          >
+            {lang === 'zh' ? 'EN' : '中'}
+          </button>
           <PWAInstallButton variant="compact" />
           {audioState.tunedStrings.length > 0 && (
             <button
               type="button"
               onClick={resetTunedProgress}
-              aria-label="重置已调准琴弦进度"
+              aria-label={t.app.resetProgressAria}
               className="min-h-[36px] flex items-center gap-1 rounded-lg bg-raised border border-white/10 px-2.5 text-xs text-gray-300 hover:text-white whitespace-nowrap shrink-0"
             >
               <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
-              <span className="hidden sm:inline">重置进度 ({audioState.tunedStrings.length}/6)</span>
+              <span className="hidden sm:inline">{t.app.resetProgress(audioState.tunedStrings.length)}</span>
               <span className="sm:hidden">{audioState.tunedStrings.length}/6</span>
             </button>
           )}
@@ -454,14 +465,14 @@ export default function App() {
           >
             <div className="flex items-start gap-2.5 text-xs sm:text-sm text-rose-200">
               <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" aria-hidden="true" />
-              <span>{audioState.error}</span>
+              <span>{t.errors[audioState.error]}</span>
             </div>
             <button
               type="button"
               onClick={handleStartSimulator}
               className="min-h-[40px] rounded-xl bg-amber-400 px-3.5 text-xs font-semibold text-slate-950 hover:bg-amber-300 whitespace-nowrap shrink-0"
             >
-              使用试音模拟
+              {t.app.useSimulator}
             </button>
           </div>
         )}
@@ -473,7 +484,7 @@ export default function App() {
             className="mb-4 w-full rounded-2xl bg-emerald-500/10 border border-emerald-500/30 p-3.5 flex items-center justify-center gap-2.5 text-sm text-emerald-100"
           >
             <Mic className="w-4 h-4 text-emerald-300 shrink-0" aria-hidden="true" />
-            <span>轻触屏幕任意位置开始监听</span>
+            <span>{t.app.tapToListen}</span>
           </button>
         )}
 
@@ -507,14 +518,14 @@ export default function App() {
                     type="button"
                     onClick={handleStopMic}
                     data-testid="btn-mic-toggle"
-                    aria-label="暂停麦克风监听"
+                    aria-label={t.app.pauseMicAria}
                     className="min-h-[44px] -my-1.5 -ml-2.5 inline-flex items-center gap-1.5 rounded-full px-2.5 text-emerald-400 font-medium hover:bg-emerald-500/10 transition-colors"
                   >
                     <span className="relative flex w-2 h-2" aria-hidden="true">
                       <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 motion-safe:animate-ping" />
                       <span className="relative inline-flex w-2 h-2 rounded-full bg-emerald-400" />
                     </span>
-                    监听中
+                    {t.app.listening}
                     <Pause className="w-3.5 h-3.5 text-gray-400" aria-hidden="true" />
                   </button>
                 ) : undefined
@@ -524,7 +535,7 @@ export default function App() {
                   type="button"
                   role="switch"
                   aria-checked={!persisted.isManualMode}
-                  aria-label="自动识别琴弦"
+                  aria-label={t.app.autoModeAria}
                   data-testid="mode-switch"
                   onClick={() => handleToggleMode(!persisted.isManualMode)}
                   className="min-h-[44px] -my-1.5 -mr-1.5 inline-flex items-center gap-2 rounded-full pl-2.5 pr-1.5 hover:bg-white/[0.04] transition-colors"
@@ -534,7 +545,7 @@ export default function App() {
                       persisted.isManualMode ? 'text-gray-400' : 'text-emerald-400'
                     }`}
                   >
-                    {persisted.isManualMode ? '手动' : '自动'}
+                    {persisted.isManualMode ? t.app.manual : t.app.auto}
                   </span>
                   <span
                     aria-hidden="true"
@@ -559,7 +570,7 @@ export default function App() {
                   className="min-h-[44px] inline-flex items-center justify-center gap-2 rounded-full bg-emerald-500 px-5 text-sm font-semibold text-slate-950 hover:bg-emerald-400 active:scale-[0.98] transition-[background-color,transform]"
                 >
                   <Mic className="w-4 h-4 shrink-0" aria-hidden="true" />
-                  开始监听
+                  {t.app.startListening}
                 </button>
               }
             >
@@ -612,7 +623,7 @@ export default function App() {
                   className="min-h-[44px] inline-flex items-center gap-1.5 px-3 text-xs text-gray-400 hover:text-amber-300 transition-colors"
                 >
                   <SlidersHorizontal className="w-3.5 h-3.5" aria-hidden="true" />
-                  没有吉他？试试内置试音模拟
+                  {t.app.trySimulator}
                 </button>
               </div>
             )}
@@ -632,7 +643,7 @@ export default function App() {
                     : 'text-gray-400 hover:text-gray-200'
                 }`}
               >
-                定弦与设音
+                {t.tabs.tuningsDesktop}
               </button>
               <button
                 type="button"
@@ -644,7 +655,7 @@ export default function App() {
                     : 'text-gray-400 hover:text-gray-200'
                 }`}
               >
-                音准检查
+                {t.tabs.intonation}
               </button>
               <button
                 type="button"
@@ -656,7 +667,7 @@ export default function App() {
                     : 'text-gray-400 hover:text-gray-200'
                 }`}
               >
-                节拍器{isMetronomePlaying ? ` · ${persisted.metronomeBpm}` : ''}
+                {t.tabs.metronome}{isMetronomePlaying ? ` · ${persisted.metronomeBpm}` : ''}
               </button>
               <button
                 type="button"
@@ -668,7 +679,7 @@ export default function App() {
                     : 'text-gray-400 hover:text-gray-200'
                 }`}
               >
-                校准设置
+                {t.tabs.settings}
               </button>
             </div>
 
@@ -794,7 +805,7 @@ export default function App() {
 
       {/* Mobile Bottom Tab Bar (64px height, Natural Thumb Zone, <= 15% total sticky height) */}
       <nav
-        aria-label="移动端主导航"
+        aria-label={t.app.mobileNavAria}
         className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-nav/95 backdrop-blur-md border-t border-white/[0.08] pb-safe"
       >
         <div className="grid grid-cols-5 h-16 items-center">
@@ -808,7 +819,7 @@ export default function App() {
             }`}
           >
             <Activity className="w-5 h-5" aria-hidden="true" />
-            <span className="text-[11px] font-medium">调音器</span>
+            <span className="text-[11px] font-medium">{t.tabs.tuner}</span>
           </button>
 
           <button
@@ -821,7 +832,7 @@ export default function App() {
             }`}
           >
             <Guitar className="w-5 h-5" aria-hidden="true" />
-            <span className="text-[11px] font-medium">定弦方案</span>
+            <span className="text-[11px] font-medium">{t.tabs.tunings}</span>
           </button>
 
           <button
@@ -834,7 +845,7 @@ export default function App() {
             }`}
           >
             <Ruler className="w-5 h-5" aria-hidden="true" />
-            <span className="text-[11px] font-medium">音准检查</span>
+            <span className="text-[11px] font-medium">{t.tabs.intonation}</span>
           </button>
 
           <button
@@ -851,7 +862,7 @@ export default function App() {
             }`}
           >
             <Timer className="w-5 h-5" aria-hidden="true" />
-            <span className="text-[11px] font-medium">节拍器</span>
+            <span className="text-[11px] font-medium">{t.tabs.metronome}</span>
           </button>
 
           <button
@@ -864,7 +875,7 @@ export default function App() {
             }`}
           >
             <Sliders className="w-5 h-5" aria-hidden="true" />
-            <span className="text-[11px] font-medium">校准设置</span>
+            <span className="text-[11px] font-medium">{t.tabs.settings}</span>
           </button>
         </div>
       </nav>

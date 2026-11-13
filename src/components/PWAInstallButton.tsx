@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Download, Smartphone, X } from 'lucide-react';
 import { usePWAInstall } from '../hooks/usePWAInstall';
+import { useI18n } from '../i18n';
 
 export const PWAInstallButton: React.FC<{ variant?: 'compact' | 'card' }> = ({
   variant = 'compact',
 }) => {
   const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
+  const { t } = useI18n();
   const [showGuide, setShowGuide] = useState(false);
 
   if (isInstalled) {
@@ -24,7 +26,7 @@ export const PWAInstallButton: React.FC<{ variant?: 'compact' | 'card' }> = ({
         }
       >
         <Download className="w-4 h-4 shrink-0" aria-hidden="true" />
-        <span>安装到桌面</span>
+        <span>{t.pwa.install}</span>
       </button>
     );
   }
@@ -42,7 +44,7 @@ export const PWAInstallButton: React.FC<{ variant?: 'compact' | 'card' }> = ({
           }
         >
           <Smartphone className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-          <span>Android / iOS 安装</span>
+          <span>{t.pwa.installGuide}</span>
         </button>
 
         {showGuide && (
@@ -55,38 +57,28 @@ export const PWAInstallButton: React.FC<{ variant?: 'compact' | 'card' }> = ({
             <div className="w-full max-w-sm rounded-2xl bg-surface border border-white/10 p-6 shadow-2xl">
               <div className="flex items-center justify-between gap-4">
                 <h3 id="pwa-install-title" className="text-base font-semibold text-gray-100">
-                  安装为独立手机应用
+                  {t.pwa.guideTitle}
                 </h3>
                 <button
                   type="button"
                   onClick={() => setShowGuide(false)}
-                  aria-label="关闭安装引导"
+                  aria-label={t.pwa.closeAria}
                   className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg text-gray-400 hover:bg-white/5 hover:text-white"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
               <div className="mt-4 space-y-3 text-sm text-gray-300 leading-relaxed">
-                {isIOS ? (
-                  <>
-                    <p>1. 点击 Safari 浏览器底部的「分享」按钮。</p>
-                    <p>2. 向下滑动并选择「添加到主屏幕」。</p>
-                    <p>3. 添加后即可全屏离线使用吉他调音器。</p>
-                  </>
-                ) : (
-                  <>
-                    <p>1. 在 Android Chrome 或 Edge 浏览器中打开本页面。</p>
-                    <p>2. 点击右上角菜单「⋮」，选择「安装应用」或「添加到主屏幕」。</p>
-                    <p>3. 安装后可像原生 Android 应用一样全屏运行并支持离线调音。</p>
-                  </>
-                )}
+                {(isIOS ? t.pwa.ios : t.pwa.android).map((line) => (
+                  <p key={line}>{line}</p>
+                ))}
               </div>
               <button
                 type="button"
                 onClick={() => setShowGuide(false)}
                 className="mt-5 w-full min-h-[44px] rounded-xl bg-emerald-500 text-slate-950 font-semibold text-sm hover:bg-emerald-400 transition-colors"
               >
-                我知道了
+                {t.pwa.gotIt}
               </button>
             </div>
           </div>

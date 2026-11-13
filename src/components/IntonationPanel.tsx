@@ -15,6 +15,8 @@ import {
   assessIntonation,
   isNearExpected,
 } from '../utils/intonation';
+import { type Messages } from '../i18n/zh';
+import { useI18n } from '../i18n';
 
 type Step = 'idle' | 'open' | 'fretted' | 'done';
 
@@ -56,6 +58,7 @@ export const IntonationPanel: React.FC<IntonationPanelProps> = ({
   onStartMic,
   onActiveChange,
 }) => {
+  const { t } = useI18n();
   const [stringNumber, setStringNumber] = useState<number>(6);
   const [step, setStep] = useState<Step>('idle');
   const [openFreq, setOpenFreq] = useState<number | null>(null);
@@ -127,9 +130,7 @@ export const IntonationPanel: React.FC<IntonationPanelProps> = ({
       wrongSinceRef.current ??= now;
       if (now - wrongSinceRef.current >= WRONG_NOTE_WARN_MS) {
         setWarning(
-          step === 'open'
-            ? `听到的不像 ${stringNumber} 弦空弦（${targetLabel}），请只弹这一根弦`
-            : '听到的不像 12 品的音，请按住琴颈双圆点处的第 12 品'
+          step === 'open' ? t.intonation.wrongOpen(stringNumber, targetLabel) : t.intonation.wrongFretted
         );
       }
       return;
@@ -145,7 +146,7 @@ export const IntonationPanel: React.FC<IntonationPanelProps> = ({
       setOpenFreq(captured);
       resetCapture();
       if (Math.abs(off) > OPEN_TUNE_WARN_CENTS) {
-        setWarning(`空弦偏${off > 0 ? '高' : '低'} ${Math.abs(off).toFixed(0)}¢，结果仍可参考，建议先调准再测`);
+        setWarning(t.intonation.openOff(off > 0, Math.round(Math.abs(off))));
       }
       setStep('fretted');
     } else if (openFreq !== null) {
@@ -175,17 +176,16 @@ export const IntonationPanel: React.FC<IntonationPanelProps> = ({
   return (
     <div className="space-y-4">
       <section className="rounded-2xl bg-surface border border-white/[0.08] p-4">
-        <h2 className="text-sm font-semibold text-gray-100">音准检查（Intonation）</h2>
+        <h2 className="text-sm font-semibold text-gray-100">{t.intonation.title}</h2>
         <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-          比较空弦和 12 品按弦的音高。两者应正好相差一个八度，偏差说明琴桥鞍座位置需要调整。
-          请先把要检查的弦调准，在安静环境下逐弦检查。
+          {t.intonation.intro}
         </p>
         {capo > 0 && (
-          <p className="mt-2 text-xs text-amber-300">检查时请取下变调夹，结果按空弦计算。</p>
+          <p className="mt-2 text-xs text-amber-300">{t.intonation.removeCapo}</p>
         )}
 
         {/* String picker with last results */}
-        <div className="mt-4 grid grid-cols-6 gap-1.5" role="radiogroup" aria-label="选择要检查的琴弦">
+        <div className="mt-4 grid grid-cols-6 gap-1.5" role="radiogroup" aria-label={t.intonation.pickStringAria}>
           {[6, 5, 4, 3, 2, 1].map((n) => {
             const s = strings.find((x) => x.stringNumber === n);
             const r = results[n];
@@ -209,7 +209,7 @@ export const IntonationPanel: React.FC<IntonationPanelProps> = ({
                 }`}
               >
                 <span className={`text-xs font-semibold ${selected ? 'text-emerald-300' : 'text-gray-200'}`}>
-                  {n} 弦
+                  {t.intonation.stringShort(n)}
                 </span>
                 <span
                   className={`font-mono-tabular text-[10px] ${
@@ -232,7 +232,7 @@ export const IntonationPanel: React.FC<IntonationPanelProps> = ({
         {source !== 'mic' ? (
           <div className="flex flex-col items-center gap-3 py-2 text-center">
             <p className="text-xs text-gray-400">
-              {source === 'simulator' ? '音准检查需要弹真实的吉他，请切换回麦克风。' : '音准检查需要开启麦克风监听。'}
+              {source === 'simulator' ? t.intonation.needRealGuitar : t.intonation.needMic}
             </p>
             <button
               type="button"
@@ -240,15 +240,15 @@ export const IntonationPanel: React.FC<IntonationPanelProps> = ({
               className="min-h-[44px] inline-flex items-center gap-2 rounded-full bg-emerald-500 px-5 text-sm font-semibold text-slate-950 hover:bg-emerald-400"
             >
               <Mic className="w-4 h-4" aria-hidden="true" />
-              开启麦克风
+              {t.intonation.enableMic}
             </button>
           </div>
         ) : isMeasuring ? (
           <div className="space-y-4">
             <ol className="grid grid-cols-2 gap-2 text-xs">
               {[
-                { key: 'open', label: `① 弹 ${stringNumber} 弦空弦` },
-                { key: 'fretted', label: '② 按住 12 品再弹' },
+                { key: 'open', label: t.intonation.stepOpen(stringNumber) },
+                { key: 'fretted', label: t.intonation.stepFretted },
               ].map((s) => {
                 const isCurrent = step === s.key;
                 const isDone = s.key === 'open' && step === 'fretted';
@@ -272,7 +272,7 @@ export const IntonationPanel: React.FC<IntonationPanelProps> = ({
 
             <div className="text-center">
               <div className="text-xs text-gray-400">
-                {step === 'open' ? `空弦相对 ${targetLabel}` : '12 品相对空弦的八度'}
+                {step === 'open' ? t.intonation.liveOpen(targetLabel) : t.intonation.liveFretted}
               </div>
               <div
                 data-testid="intonation-live-cents"
@@ -287,7 +287,7 @@ export const IntonationPanel: React.FC<IntonationPanelProps> = ({
                 />
               </div>
               <div className="mt-1.5 text-[11px] text-gray-500">
-                {progress > 0 ? '保持弦振动，正在读取稳定音高…' : '弹响后让弦自然延音，不要闷音'}
+                {progress > 0 ? t.intonation.reading : t.intonation.pluckHint}
               </div>
             </div>
 
@@ -304,12 +304,12 @@ export const IntonationPanel: React.FC<IntonationPanelProps> = ({
               className="min-h-[40px] w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-raised border border-white/10 text-xs text-gray-300 hover:text-white"
             >
               <X className="w-3.5 h-3.5" aria-hidden="true" />
-              取消
+              {t.intonation.cancel}
             </button>
           </div>
         ) : step === 'done' && result ? (
           <div className="space-y-4">
-            <ResultView result={result} stringNumber={stringNumber} />
+            <ResultView result={result} stringNumber={stringNumber} t={t} />
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
@@ -317,7 +317,7 @@ export const IntonationPanel: React.FC<IntonationPanelProps> = ({
                 className="min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-xl bg-raised border border-white/10 text-sm text-gray-200 hover:text-white"
               >
                 <RotateCcw className="w-4 h-4" aria-hidden="true" />
-                重新测量
+                {t.intonation.remeasure}
               </button>
               <button
                 type="button"
@@ -326,7 +326,7 @@ export const IntonationPanel: React.FC<IntonationPanelProps> = ({
                 className="min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-500 text-sm font-semibold text-slate-950 hover:bg-emerald-400"
               >
                 <SkipForward className="w-4 h-4" aria-hidden="true" />
-                检查 {nextString} 弦
+                {t.intonation.checkString(nextString)}
               </button>
             </div>
           </div>
@@ -337,7 +337,7 @@ export const IntonationPanel: React.FC<IntonationPanelProps> = ({
             data-testid="intonation-start"
             className="min-h-[48px] w-full rounded-xl bg-emerald-500 text-sm font-semibold text-slate-950 hover:bg-emerald-400"
           >
-            开始检查 {stringNumber} 弦（{targetLabel}）
+            {t.intonation.start(stringNumber, targetLabel)}
           </button>
         )}
       </section>
@@ -345,15 +345,16 @@ export const IntonationPanel: React.FC<IntonationPanelProps> = ({
   );
 };
 
-const ResultView: React.FC<{ result: IntonationResult; stringNumber: number }> = ({
+const ResultView: React.FC<{ result: IntonationResult; stringNumber: number; t: Messages }> = ({
   result,
   stringNumber,
+  t,
 }) => {
   const mm = Math.abs(result.saddleMoveMm);
   return (
     <div data-testid="intonation-result">
       <div className="flex items-baseline justify-between gap-3">
-        <span className="text-xs text-gray-400">{stringNumber} 弦 · 12 品相对八度</span>
+        <span className="text-xs text-gray-400">{t.intonation.resultHeader(stringNumber)}</span>
         <span
           className={`font-mono-tabular text-3xl font-bold ${
             result.verdict === 'ok' ? 'text-emerald-400' : 'text-amber-300'
@@ -366,20 +367,19 @@ const ResultView: React.FC<{ result: IntonationResult; stringNumber: number }> =
       {result.verdict === 'ok' ? (
         <p className="mt-3 flex items-start gap-2 text-sm text-emerald-200">
           <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
-          音准良好（±{INTONATION_OK_CENTS}¢ 以内），这根弦无需调整。
+          {t.intonation.ok(INTONATION_OK_CENTS)}
         </p>
       ) : (
         <div className="mt-3 space-y-2 text-sm text-gray-200">
           <p>
-            12 品偏{result.verdict === 'sharp' ? '高' : '低'}，
+            {t.intonation.offPrefix(result.verdict === 'sharp')}
             <span className="font-semibold text-white">
-              鞍座需要{result.verdict === 'sharp' ? '向后移（远离琴颈）' : '向前移（靠近琴颈）'}
+              {t.intonation.moveSaddle(result.verdict === 'sharp')}
             </span>
-            ，按 648 mm 弦长估算约 {mm < 0.1 ? '0.1' : mm.toFixed(1)} mm。
+            {t.intonation.estimate(mm < 0.1 ? '0.1' : mm.toFixed(1))}
           </p>
           <p className="text-xs text-gray-400 leading-relaxed">
-            调整后要先把空弦重新调准再测。民谣和古典吉他的鞍座通常不能单独调节，偏差较大时建议交给琴行处理。
-            按弦太用力也会让 12 品偏高，测量时请正常力度按弦。
+            {t.intonation.notes}
           </p>
         </div>
       )}
