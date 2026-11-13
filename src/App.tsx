@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import {
   Activity,
   AlertCircle,
@@ -7,12 +7,14 @@ import {
   Mic,
   Pause,
   RotateCcw,
+  Ruler,
   Sliders,
   SlidersHorizontal,
   Timer,
 } from 'lucide-react';
 import { CalibrationPanel } from './components/CalibrationPanel';
 import { HeadstockPegboard } from './components/HeadstockPegboard';
+import { IntonationPanel } from './components/IntonationPanel';
 import { MetronomePanel } from './components/MetronomePanel';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { PWAInstallButton } from './components/PWAInstallButton';
@@ -20,6 +22,7 @@ import { SimulatorBar } from './components/SimulatorBar';
 import { TunerDial } from './components/TunerDial';
 import { TuningPresetsPanel } from './components/TuningPresetsPanel';
 import { useTunerAudio } from './hooks/useTunerAudio';
+import { useWakeLock } from './hooks/useWakeLock';
 import { DEFAULT_BPM, getTimeSignatureById } from './utils/metronome';
 import { MetronomeEngine } from './utils/metronomeEngine';
 import {
@@ -33,8 +36,17 @@ import {
 } from './utils/musicTheory';
 import { referenceTonePlayer } from './utils/toneGenerator';
 
-type MobileTab = 'tuner' | 'tunings' | 'metronome' | 'settings';
-type DesktopSideTab = 'tunings' | 'metronome' | 'settings';
+type MobileTab = 'tuner' | 'tunings' | 'intonation' | 'metronome' | 'settings';
+type DesktopSideTab = 'tunings' | 'intonation' | 'metronome' | 'settings';
+
+// Same breakpoint as Tailwind `lg`, where the side panel sits next to the tuner
+const DESKTOP_QUERY = '(min-width: 1024px)';
+const subscribeDesktop = (onChange: () => void) => {
+  const mq = window.matchMedia(DESKTOP_QUERY);
+  mq.addEventListener('change', onChange);
+  return () => mq.removeEventListener('change', onChange);
+};
+const getIsDesktop = () => window.matchMedia(DESKTOP_QUERY).matches;
 
 const STORAGE_KEY = 'xianzhun_guitar_tuner_v1';
 
@@ -95,6 +107,13 @@ export default function App() {
   const [desktopSideTab, setDesktopSideTab] = useState<DesktopSideTab>('tunings');
   const [playingString, setPlayingString] = useState<number | null>(null);
   const [isLoopingTone, setIsLoopingTone] = useState(false);
+  const isDesktop = useSyncExternalStore(subscribeDesktop, getIsDesktop);
+  const isIntonationVisible = isDesktop
+    ? desktopSideTab === 'intonation'
+    : mobileTab === 'intonation';
+  // While an intonation check runs the tuner follows any note: the 12th fret is an octave above the string
+  const [isIntonationActive, setIsIntonationActive] = useState(false);
+  const isChromaticEffective = persisted.isChromatic || isIntonationActive;
 
   // Metronome state & engine
   const [isMetronomePlaying, setIsMetronomePlaying] = useState(false);
@@ -184,12 +203,14 @@ export default function App() {
     a4Freq: persisted.a4Freq,
     capo: persisted.capo,
     toleranceCents: persisted.toleranceCents,
-    isChromatic: persisted.isChromatic,
+    isChromatic: isChromaticEffective,
     manualStringNumber: persisted.isManualMode ? persisted.selectedManualString : null,
     preferFlats: persisted.preferFlats,
     simStringNumber,
     simDetuneCents,
   });
+
+  useWakeLock(audioState.source !== 'idle' || isMetronomePlaying || isLoopingTone);
 
   // Stop looping reference tone & metronome cleanly on unmount
   useEffect(() => {
@@ -470,7 +491,7 @@ export default function App() {
               isSignalActive={audioState.isSignalActive}
               isLockedInTune={audioState.isLockedInTune}
               toleranceCents={persisted.toleranceCents}
-              isChromatic={persisted.isChromatic}
+              isChromatic={isChromaticEffective}
               manualStringNumber={
                 persisted.isManualMode ? persisted.selectedManualString : null
               }
@@ -600,7 +621,7 @@ export default function App() {
           {/* Right / Studio Configuration Column (Desktop) & Mobile Sub-Tabs */}
           <div className="lg:col-span-5 desk:min-h-0 lg:flex lg:flex-col lg:gap-4">
             {/* Desktop Studio Panel Tab Switcher */}
-            <div className="hidden lg:grid shrink-0 grid-cols-3 gap-1.5 p-1 rounded-2xl bg-surface border border-white/[0.08]">
+            <div className="hidden lg:grid shrink-0 grid-cols-4 gap-1.5 p-1 rounded-2xl bg-surface border border-white/[0.08]">
               <button
                 type="button"
                 onClick={() => setDesktopSideTab('tunings')}
@@ -612,6 +633,18 @@ export default function App() {
                 }`}
               >
                 定弦与设音
+              </button>
+              <button
+                type="button"
+                onClick={() => setDesktopSideTab('intonation')}
+                data-testid="desktop-tab-intonation"
+                className={`min-h-[44px] rounded-xl text-xs xl:text-sm font-semibold transition-colors whitespace-nowrap px-2 ${
+                  desktopSideTab === 'intonation'
+                    ? 'bg-control-hover text-white'
+                    : 'text-gray-400 hover:text-gray-200'
+                }`}
+              >
+                音准检查
               </button>
               <button
                 type="button"
@@ -672,6 +705,30 @@ export default function App() {
                 onResetToPreset={handleResetToPreset}
                 onSaveCustomPreset={handleSaveCustomPreset}
                 onDeleteCustomPreset={handleDeleteCustomPreset}
+              />
+            </div>
+
+            {/* Intonation check */}
+            <div
+              className={
+                mobileTab === 'intonation'
+                  ? 'block'
+                  : desktopSideTab === 'intonation'
+                    ? 'hidden lg:block'
+                    : 'hidden'
+              }
+            >
+              <IntonationPanel
+                visible={isIntonationVisible}
+                source={audioState.source}
+                match={audioState.match}
+                isSignalActive={audioState.isSignalActive}
+                strings={persisted.workingStrings}
+                a4Freq={persisted.a4Freq}
+                capo={persisted.capo}
+                preferFlats={persisted.preferFlats}
+                onStartMic={handleStartMic}
+                onActiveChange={setIsIntonationActive}
               />
             </div>
 
@@ -740,7 +797,7 @@ export default function App() {
         aria-label="移动端主导航"
         className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-nav/95 backdrop-blur-md border-t border-white/[0.08] pb-safe"
       >
-        <div className="grid grid-cols-4 h-16 items-center">
+        <div className="grid grid-cols-5 h-16 items-center">
           <button
             type="button"
             onClick={() => setMobileTab('tuner')}
@@ -765,6 +822,19 @@ export default function App() {
           >
             <Guitar className="w-5 h-5" aria-hidden="true" />
             <span className="text-[11px] font-medium">定弦方案</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setMobileTab('intonation')}
+            data-testid="mobile-nav-intonation"
+            aria-current={mobileTab === 'intonation' ? 'page' : undefined}
+            className={`min-h-[48px] flex flex-col items-center justify-center gap-1 transition-colors ${
+              mobileTab === 'intonation' ? 'text-emerald-400' : 'text-gray-400 hover:text-gray-200'
+            }`}
+          >
+            <Ruler className="w-5 h-5" aria-hidden="true" />
+            <span className="text-[11px] font-medium">音准检查</span>
           </button>
 
           <button
