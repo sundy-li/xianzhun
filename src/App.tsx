@@ -36,7 +36,7 @@ import { referenceTonePlayer } from './utils/toneGenerator';
 type MobileTab = 'tuner' | 'tunings' | 'metronome' | 'settings';
 type DesktopSideTab = 'tunings' | 'metronome' | 'settings';
 
-const STORAGE_KEY = 'xuanzhun_guitar_tuner_v1';
+const STORAGE_KEY = 'xianzhun_guitar_tuner_v1';
 
 interface PersistedState {
   activePresetId: string;
