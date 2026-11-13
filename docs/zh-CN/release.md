@@ -30,7 +30,7 @@ npx wrangler pages deploy dist --project-name xianzhun --branch main
 3. 提交、推送，然后打标签：
 
    ```bash
-   git tag -a v0.3 -m "Xianzhun v0.3"
+   git tag -a v0.3 -m "xianzhun v0.3"
    git push origin v0.3
    ```
 

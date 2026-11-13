@@ -2,7 +2,7 @@
 
 [← README](../../README.md) · [简体中文](../zh-CN/install.md)
 
-Download installers from the [Releases](https://github.com/sundy-li/xianzhun/releases) page. File names start with the app name and version, for example `Xianzhun_<version>_android.apk`. Releases up to v0.2 use the old name `JTune_`.
+Download installers from the [Releases](https://github.com/sundy-li/xianzhun/releases) page. File names start with the app name and version, for example `xianzhun_<version>_android.apk`. Releases up to v0.2 use the old name `JTune_`.
 
 | Platform | File |
 |---|---|
@@ -36,7 +36,7 @@ After the first visit the app works offline.
 2. The app is not notarized by Apple. If macOS says the developer cannot be verified or the app is damaged, run this in Terminal and open it again:
 
    ```bash
-   xattr -cr /Applications/Xianzhun.app   # JTune.app for v0.2 and earlier
+   xattr -cr /Applications/xianzhun.app   # JTune.app for v0.2 and earlier
    ```
 
 3. Allow microphone access when asked.

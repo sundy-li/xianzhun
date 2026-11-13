@@ -1,6 +1,6 @@
 [package]
 name = "xianzhun"
-version = "0.2.0"
+version = "0.3.0"
 description = "弦准吉他调音器"
 authors = ["sundy-li"]
 license = "UNLICENSED"
