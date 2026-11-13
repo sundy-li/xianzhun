@@ -58,6 +58,40 @@ test('detectPitchYin avoids octave jumps when 2nd/3rd harmonics dominate E2 and 
   }
 });
 
+test('detectPitchYin keeps the fundamental under strong low-frequency room noise', () => {
+  // Noise keeps every CMNDF dip above the threshold; the deepest dip then sits on a period
+  // multiple (196 Hz used to read as 98 Hz, 329.63 Hz as 82 Hz).
+  const sampleRate = 48000;
+  for (const expectedHz of [82.41, 110.0, 146.83, 196.0, 246.94, 329.63]) {
+    const buffer = generateGuitarWaveform(expectedHz, sampleRate, 8192, 0.35);
+    let seed = 7;
+    let lowPassed = 0;
+    for (let i = 0; i < buffer.length; i++) {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      lowPassed = 0.95 * lowPassed + 0.05 * (seed / 0xffffffff - 0.5);
+      buffer[i] += lowPassed * 2.5;
+    }
+    const result = detectPitchYin(buffer, sampleRate);
+    assert.ok(result !== null, `Expected detection for ${expectedHz} Hz in noise`);
+    const centsError = Math.abs(getCentsDifference(result.frequency, expectedHz));
+    assert.ok(
+      centsError < 3,
+      `Noise pulled ${expectedHz} Hz to ${result.frequency.toFixed(2)} Hz (${centsError.toFixed(2)} cents)`
+    );
+  }
+});
+
+test('detectPitchYin reaches sub-0.1-cent precision on clean sustained strings', () => {
+  const sampleRate = 48000;
+  for (const expectedHz of [61.74, 82.41, 110.0, 146.83, 196.0, 246.94, 329.63, 440.0]) {
+    const buffer = generateGuitarWaveform(expectedHz, sampleRate, 8192, 0.35);
+    const result = detectPitchYin(buffer, sampleRate);
+    assert.ok(result !== null);
+    const centsError = Math.abs(getCentsDifference(result.frequency, expectedHz));
+    assert.ok(centsError < 0.1, `${expectedHz} Hz: ${centsError.toFixed(3)} cents error`);
+  }
+});
+
 test('filterStableFrequency removes single-frame outlier spikes', () => {
   const stable = filterStableFrequency([110.0, 110.1, 220.0, 109.9, 110.05]);
   assert.ok(Math.abs(stable - 110.05) < 0.2);

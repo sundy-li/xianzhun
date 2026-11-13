@@ -69,7 +69,7 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
   return (
     <div className="space-y-4">
       {/* Chromatic Mode Switch */}
-      <section className="rounded-2xl bg-[#181A1F] border border-white/[0.08] p-4">
+      <section className="rounded-2xl bg-surface border border-white/[0.08] p-4">
         <div className="flex items-center justify-between gap-4">
           <div>
             <h2 className="text-sm font-semibold text-gray-100">十二平均律（半音阶全音域）</h2>
@@ -87,7 +87,7 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
             className={`relative inline-flex h-8 w-14 shrink-0 items-center rounded-full border transition-colors ${
               isChromatic
                 ? 'bg-emerald-500 border-emerald-400'
-                : 'bg-[#262A32] border-white/10'
+                : 'bg-control-hover border-white/10'
             }`}
           >
             <span
@@ -100,7 +100,7 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
       </section>
 
       {/* Preset Library */}
-      <section className="rounded-2xl bg-[#181A1F] border border-white/[0.08] p-4">
+      <section className="rounded-2xl bg-surface border border-white/[0.08] p-4">
         <div className="flex items-center justify-between gap-2 mb-3">
           <h2 className="text-sm font-semibold text-gray-100">常用定弦方案</h2>
           <span className="text-xs text-gray-400">共 {allPresets.length} 套</span>
@@ -119,7 +119,7 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
                 className={`flex items-center justify-between gap-2 rounded-xl border transition-colors ${
                   isSelected
                     ? 'bg-emerald-500/12 border-emerald-400/50'
-                    : 'bg-[#1D1F25] border-white/[0.07] hover:bg-[#23262E]'
+                    : 'bg-raised border-white/[0.07] hover:bg-control'
                 }`}
               >
                 <button
@@ -163,7 +163,7 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
       </section>
 
       {/* Manual Per-String Customizer */}
-      <section className="rounded-2xl bg-[#181A1F] border border-white/[0.08] p-4">
+      <section className="rounded-2xl bg-surface border border-white/[0.08] p-4">
         <div className="flex items-center justify-between gap-2 mb-3">
           <div>
             <h2 className="text-sm font-semibold text-gray-100">手动设定各弦音调</h2>
@@ -175,7 +175,7 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
             <button
               type="button"
               onClick={onResetToPreset}
-              className="min-h-[36px] flex items-center gap-1 rounded-lg bg-[#23262E] border border-white/10 px-2.5 text-xs text-gray-300 hover:text-white transition-colors whitespace-nowrap shrink-0"
+              className="min-h-[36px] flex items-center gap-1 rounded-lg bg-control border border-white/10 px-2.5 text-xs text-gray-300 hover:text-white transition-colors whitespace-nowrap shrink-0"
             >
               <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
               <span>还原预设</span>
@@ -206,7 +206,7 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
                     onClick={() => onShiftStringMidi(str.stringNumber, -1)}
                     aria-label={`第 ${str.stringNumber} 弦降半音`}
                     data-testid={`editor-minus-${str.stringNumber}`}
-                    className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg bg-[#23262E] border border-white/10 text-gray-200 hover:bg-[#2D313B] active:scale-95 transition-all"
+                    className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg bg-control border border-white/10 text-gray-200 hover:bg-control-hover active:scale-95 transition-all"
                   >
                     <Minus className="w-4 h-4" />
                   </button>
@@ -219,7 +219,7 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
                     data-testid={`editor-select-${str.stringNumber}`}
                     value={str.midi}
                     onChange={(e) => onSetStringMidi(str.stringNumber, Number(e.target.value))}
-                    className="min-h-[40px] rounded-lg bg-[#121316] border border-white/15 px-2.5 font-mono-tabular text-sm font-semibold text-gray-100 focus:outline-none focus:border-emerald-400"
+                    className="min-h-[40px] rounded-lg bg-inset border border-white/15 px-2.5 font-mono-tabular text-sm font-semibold text-gray-100 focus:outline-none focus:border-emerald-400"
                   >
                     {selectableNotes.map((note) => (
                       <option key={note.midi} value={note.midi}>
@@ -233,7 +233,7 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
                     onClick={() => onShiftStringMidi(str.stringNumber, 1)}
                     aria-label={`第 ${str.stringNumber} 弦升半音`}
                     data-testid={`editor-plus-${str.stringNumber}`}
-                    className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg bg-[#23262E] border border-white/10 text-gray-200 hover:bg-[#2D313B] active:scale-95 transition-all"
+                    className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg bg-control border border-white/10 text-gray-200 hover:bg-control-hover active:scale-95 transition-all"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
@@ -259,7 +259,7 @@ export const TuningPresetsPanel: React.FC<TuningPresetsPanelProps> = ({
               }}
               placeholder="例如：指弹特殊调弦"
               maxLength={24}
-              className="flex-1 min-h-[44px] rounded-xl bg-[#121316] border border-white/15 px-3 text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-emerald-400"
+              className="flex-1 min-h-[44px] rounded-xl bg-inset border border-white/15 px-3 text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-emerald-400"
             />
             <button
               type="submit"

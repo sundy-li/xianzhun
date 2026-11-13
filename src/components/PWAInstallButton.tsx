@@ -20,7 +20,7 @@ export const PWAInstallButton: React.FC<{ variant?: 'compact' | 'card' }> = ({
         className={
           variant === 'card'
             ? 'w-full min-h-[44px] flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 hover:bg-emerald-400 active:scale-[0.98] transition-all whitespace-nowrap shrink-0'
-            : 'min-h-[40px] flex items-center gap-1.5 rounded-lg bg-[#23262E] border border-white/10 px-3 py-1.5 text-xs font-medium text-gray-100 hover:bg-[#2C303A] transition-colors whitespace-nowrap shrink-0'
+            : 'min-h-[40px] flex items-center gap-1.5 rounded-lg bg-control border border-white/10 px-3 py-1.5 text-xs font-medium text-gray-100 hover:bg-control-hover transition-colors whitespace-nowrap shrink-0'
         }
       >
         <Download className="w-4 h-4 shrink-0" aria-hidden="true" />
@@ -37,8 +37,8 @@ export const PWAInstallButton: React.FC<{ variant?: 'compact' | 'card' }> = ({
           onClick={() => setShowGuide(true)}
           className={
             variant === 'card'
-              ? 'w-full min-h-[44px] flex items-center justify-center gap-2 rounded-xl bg-[#23262E] border border-white/10 px-4 py-2.5 text-sm font-medium text-gray-200 hover:bg-[#2C303A] transition-colors whitespace-nowrap shrink-0'
-              : 'min-h-[40px] flex items-center gap-1.5 rounded-lg border border-white/10 bg-[#1B1D22] px-3 py-1.5 text-xs font-medium text-gray-300 hover:text-white transition-colors whitespace-nowrap shrink-0'
+              ? 'w-full min-h-[44px] flex items-center justify-center gap-2 rounded-xl bg-control border border-white/10 px-4 py-2.5 text-sm font-medium text-gray-200 hover:bg-control-hover transition-colors whitespace-nowrap shrink-0'
+              : 'min-h-[40px] flex items-center gap-1.5 rounded-lg border border-white/10 bg-raised px-3 py-1.5 text-xs font-medium text-gray-300 hover:text-white transition-colors whitespace-nowrap shrink-0'
           }
         >
           <Smartphone className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
@@ -52,7 +52,7 @@ export const PWAInstallButton: React.FC<{ variant?: 'compact' | 'card' }> = ({
             aria-labelledby="pwa-install-title"
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
           >
-            <div className="w-full max-w-sm rounded-2xl bg-[#181A1F] border border-white/10 p-6 shadow-2xl">
+            <div className="w-full max-w-sm rounded-2xl bg-surface border border-white/10 p-6 shadow-2xl">
               <div className="flex items-center justify-between gap-4">
                 <h3 id="pwa-install-title" className="text-base font-semibold text-gray-100">
                   安装为独立手机应用

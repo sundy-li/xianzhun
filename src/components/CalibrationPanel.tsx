@@ -29,7 +29,7 @@ export const CalibrationPanel: React.FC<CalibrationPanelProps> = ({
   return (
     <div className="space-y-4">
       {/* A4 Reference Calibration */}
-      <section className="rounded-2xl bg-[#181A1F] border border-white/[0.08] p-4">
+      <section className="rounded-2xl bg-surface border border-white/[0.08] p-4">
         <div className="flex items-center justify-between gap-2">
           <div>
             <h2 className="text-sm font-semibold text-gray-100">A4 基准音校准</h2>
@@ -41,7 +41,7 @@ export const CalibrationPanel: React.FC<CalibrationPanelProps> = ({
             <button
               type="button"
               onClick={() => onChangeA4(DEFAULT_A4_FREQ)}
-              className="min-h-[36px] flex items-center gap-1 rounded-lg bg-[#23262E] px-2.5 text-xs text-gray-300 hover:text-white whitespace-nowrap shrink-0"
+              className="min-h-[36px] flex items-center gap-1 rounded-lg bg-control px-2.5 text-xs text-gray-300 hover:text-white whitespace-nowrap shrink-0"
             >
               <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
               <span>重置 440</span>
@@ -56,7 +56,7 @@ export const CalibrationPanel: React.FC<CalibrationPanelProps> = ({
             disabled={a4Freq <= MIN_A4_FREQ}
             aria-label="降低 A4 基准频率 1 Hz"
             data-testid="a4-minus"
-            className="min-h-[44px] min-w-[48px] flex items-center justify-center rounded-xl bg-[#23262E] border border-white/10 text-gray-100 hover:bg-[#2C303A] disabled:opacity-40"
+            className="min-h-[44px] min-w-[48px] flex items-center justify-center rounded-xl bg-control border border-white/10 text-gray-100 hover:bg-control-hover disabled:opacity-40"
           >
             <Minus className="w-4 h-4" />
           </button>
@@ -73,7 +73,7 @@ export const CalibrationPanel: React.FC<CalibrationPanelProps> = ({
             disabled={a4Freq >= MAX_A4_FREQ}
             aria-label="升高 A4 基准频率 1 Hz"
             data-testid="a4-plus"
-            className="min-h-[44px] min-w-[48px] flex items-center justify-center rounded-xl bg-[#23262E] border border-white/10 text-gray-100 hover:bg-[#2C303A] disabled:opacity-40"
+            className="min-h-[44px] min-w-[48px] flex items-center justify-center rounded-xl bg-control border border-white/10 text-gray-100 hover:bg-control-hover disabled:opacity-40"
           >
             <Plus className="w-4 h-4" />
           </button>
@@ -89,7 +89,7 @@ export const CalibrationPanel: React.FC<CalibrationPanelProps> = ({
               className={`min-h-[40px] rounded-lg font-mono-tabular text-xs font-semibold border transition-colors ${
                 a4Freq === presetHz
                   ? 'bg-emerald-500/15 border-emerald-400/60 text-emerald-300'
-                  : 'bg-[#1D1F25] border-white/[0.08] text-gray-300 hover:bg-[#242730]'
+                  : 'bg-raised border-white/[0.08] text-gray-300 hover:bg-control'
               }`}
             >
               {presetHz} Hz
@@ -99,7 +99,7 @@ export const CalibrationPanel: React.FC<CalibrationPanelProps> = ({
       </section>
 
       {/* Capo Offset */}
-      <section className="rounded-2xl bg-[#181A1F] border border-white/[0.08] p-4">
+      <section className="rounded-2xl bg-surface border border-white/[0.08] p-4">
         <div className="flex items-center justify-between gap-2 mb-3">
           <div>
             <h2 className="text-sm font-semibold text-gray-100">变调夹（Capo）品位偏移</h2>
@@ -120,7 +120,7 @@ export const CalibrationPanel: React.FC<CalibrationPanelProps> = ({
               className={`min-h-[40px] rounded-lg font-mono-tabular text-xs font-semibold border transition-colors ${
                 capo === fret
                   ? 'bg-emerald-500/15 border-emerald-400/60 text-emerald-300'
-                  : 'bg-[#1D1F25] border-white/[0.08] text-gray-300 hover:bg-[#242730]'
+                  : 'bg-raised border-white/[0.08] text-gray-300 hover:bg-control'
               }`}
             >
               {fret === 0 ? '0' : `+${fret}`}
@@ -130,7 +130,7 @@ export const CalibrationPanel: React.FC<CalibrationPanelProps> = ({
       </section>
 
       {/* Tolerance & Notation */}
-      <section className="rounded-2xl bg-[#181A1F] border border-white/[0.08] p-4 space-y-4">
+      <section className="rounded-2xl bg-surface border border-white/[0.08] p-4 space-y-4">
         <div>
           <h2 className="text-sm font-semibold text-gray-100">音准判定精度</h2>
           <div className="mt-2.5 grid grid-cols-3 gap-2">
@@ -146,7 +146,7 @@ export const CalibrationPanel: React.FC<CalibrationPanelProps> = ({
                 className={`min-h-[42px] rounded-xl text-xs font-semibold border transition-colors ${
                   toleranceCents === opt.value
                     ? 'bg-emerald-500/15 border-emerald-400/60 text-emerald-300'
-                    : 'bg-[#1D1F25] border-white/[0.08] text-gray-300 hover:bg-[#242730]'
+                    : 'bg-raised border-white/[0.08] text-gray-300 hover:bg-control'
                 }`}
               >
                 {opt.label}
@@ -160,12 +160,12 @@ export const CalibrationPanel: React.FC<CalibrationPanelProps> = ({
             <h2 className="text-sm font-semibold text-gray-100">半音记号偏好</h2>
             <p className="text-xs text-gray-400 mt-0.5">切换升号（C#）或降号（Db）显示</p>
           </div>
-          <div className="flex items-center gap-1 p-1 rounded-xl bg-[#121316] border border-white/[0.08]">
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-inset border border-white/[0.08]">
             <button
               type="button"
               onClick={() => onChangePreferFlats(false)}
               className={`min-h-[36px] px-3 rounded-lg text-xs font-semibold transition-colors ${
-                !preferFlats ? 'bg-[#252830] text-white' : 'text-gray-400 hover:text-gray-200'
+                !preferFlats ? 'bg-control-hover text-white' : 'text-gray-400 hover:text-gray-200'
               }`}
             >
               升号 #
@@ -174,7 +174,7 @@ export const CalibrationPanel: React.FC<CalibrationPanelProps> = ({
               type="button"
               onClick={() => onChangePreferFlats(true)}
               className={`min-h-[36px] px-3 rounded-lg text-xs font-semibold transition-colors ${
-                preferFlats ? 'bg-[#252830] text-white' : 'text-gray-400 hover:text-gray-200'
+                preferFlats ? 'bg-control-hover text-white' : 'text-gray-400 hover:text-gray-200'
               }`}
             >
               降号 b
@@ -184,7 +184,7 @@ export const CalibrationPanel: React.FC<CalibrationPanelProps> = ({
       </section>
 
       {/* Android PWA Install Card */}
-      <section className="rounded-2xl bg-[#181A1F] border border-white/[0.08] p-4 space-y-3">
+      <section className="rounded-2xl bg-surface border border-white/[0.08] p-4 space-y-3">
         <div>
           <h2 className="text-sm font-semibold text-gray-100">安装至 Android 手机桌面</h2>
           <p className="text-xs text-gray-400 mt-1 leading-relaxed">

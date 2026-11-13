@@ -51,13 +51,78 @@ function findLocalMinimumNear(
   return bestIdx;
 }
 
+/** Weighted difference d(tau) normalized by the energy of both compared segments (0 = identical). */
+function normalizedDifference(x: Float32Array, w: Float32Array, h: number, tau: number): number {
+  let diff = 0;
+  let energy = 0;
+  for (let i = 0; i < h; i++) {
+    const a = x[i];
+    const b = x[i + tau];
+    const delta = a - b;
+    diff += w[i] * delta * delta;
+    energy += w[i] * (a * a + b * b);
+  }
+  return energy > 0 ? diff / energy : 1;
+}
+
+/**
+ * Refines a coarse period by measuring the difference-function dip at 2x, 4x, 8x... the period.
+ * The absolute lag error stays roughly constant at every multiple, so dividing by k shrinks the
+ * period error k times. Stops when the multiple runs past the buffer, the dip cannot be found,
+ * or the dip becomes much shallower (string decay or pitch moving during the frame).
+ */
+function refinePeriod(x: Float32Array, w: Float32Array, h: number, period: number): number {
+  const maxLag = x.length - h - 2;
+  const baseQuality = normalizedDifference(x, w, h, Math.round(period));
+  const maxDipValue = Math.max(baseQuality * 3, 0.08);
+  let estimate = period;
+
+  for (let k = 2; ; k *= 2) {
+    // Dips at period multiples are one period apart; never walk past a quarter period.
+    const maxWalk = Math.max(3, Math.floor(estimate / 4));
+    let tau = Math.round(k * estimate);
+    if (tau - maxWalk < 1 || tau + maxWalk + 1 > maxLag) break;
+
+    const cache = new Map<number, number>();
+    const nd = (lag: number) => {
+      let v = cache.get(lag);
+      if (v === undefined) {
+        v = normalizedDifference(x, w, h, lag);
+        cache.set(lag, v);
+      }
+      return v;
+    };
+
+    const dir = nd(tau + 1) < nd(tau) ? 1 : nd(tau - 1) < nd(tau) ? -1 : 0;
+    if (dir !== 0) {
+      let steps = 0;
+      while (steps < maxWalk && nd(tau + dir) < nd(tau)) {
+        tau += dir;
+        steps++;
+      }
+      if (steps >= maxWalk) break;
+    }
+
+    const s0 = nd(tau - 1);
+    const s1 = nd(tau);
+    const s2 = nd(tau + 1);
+    if (s1 > maxDipValue) break;
+    const denominator = 2 * (2 * s1 - s2 - s0);
+    const adjustment = Math.abs(denominator) > 1e-12 ? (s2 - s0) / denominator : 0;
+    estimate = (tau + (Math.abs(adjustment) < 1 ? adjustment : 0)) / k;
+  }
+  return estimate;
+}
+
 /**
  * Enhanced YIN fundamental frequency estimator (stringSync / YIN paper inspired):
  * 1. DC-offset removal + zero-bias Tukey weighting on the difference sum so frame edges
  *    are tapered without shifting the true periodicity minimum.
  * 2. Difference & Cumulative Mean Normalized Difference Function (CMNDF).
  * 3. Strict absolute thresholding (~0.11) + sub-harmonic verification to avoid octave jumps.
- * 4. Parabolic interpolation for sub-cent precision.
+ *    When noise keeps every dip above the threshold, take the earliest dip that is nearly as
+ *    deep as the global minimum, because the global minimum often sits on a period multiple.
+ * 4. Parabolic interpolation, then refinement at period multiples for sub-cent precision.
  */
 export function detectPitchYin(
   buffer: Float32Array,
@@ -156,7 +221,17 @@ export function detectPitchYin(
     if (minVal > 0.18 || minIdx === -1) {
       return null;
     }
+    const nearlyAsDeep = minVal * 1.2 + 0.02;
     tauEstimate = minIdx;
+    for (let tau = minTau; tau < minIdx; tau++) {
+      if (yinBuffer[tau] <= nearlyAsDeep) {
+        while (tau + 1 <= maxTau && yinBuffer[tau + 1] < yinBuffer[tau]) {
+          tau++;
+        }
+        tauEstimate = tau;
+        break;
+      }
+    }
   }
 
   // Step 3.5: Sub-harmonic / Octave disambiguation
@@ -175,8 +250,9 @@ export function detectPitchYin(
     }
   }
 
-  // Step 4: Parabolic interpolation for sub-sample precision
-  const betterTau = parabolicInterpolate(yinBuffer, tauEstimate, maxTau);
+  // Step 4: Parabolic interpolation, then refinement at period multiples
+  const coarseTau = parabolicInterpolate(yinBuffer, tauEstimate, maxTau);
+  const betterTau = refinePeriod(centered, weights, halfBufferSize, coarseTau);
   const frequency = sampleRate / betterTau;
 
   if (!Number.isFinite(frequency) || frequency < minFrequency || frequency > maxFrequency) {

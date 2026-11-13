@@ -201,6 +201,48 @@ export default function App() {
     };
   }, []);
 
+  // Microphone listens by default. wantMicRef records whether the user still wants it, so that
+  // an explicit stop or the simulator is respected when the app comes back from the background.
+  const wantMicRef = React.useRef(true);
+  const audioSourceRef = React.useRef(audioState.source);
+  audioSourceRef.current = audioState.source;
+
+  const handleStartMic = useCallback(() => {
+    wantMicRef.current = true;
+    void startMicrophone();
+  }, [startMicrophone]);
+
+  const handleStopMic = useCallback(() => {
+    wantMicRef.current = false;
+    stopAll();
+  }, [stopAll]);
+
+  const handleStartSimulator = useCallback(() => {
+    wantMicRef.current = false;
+    startSimulator();
+  }, [startSimulator]);
+
+  const handleStopSimulator = useCallback(() => {
+    wantMicRef.current = true;
+    void startMicrophone();
+  }, [startMicrophone]);
+
+  useEffect(() => {
+    void startMicrophone();
+    // Release the mic in the background (privacy, battery; iOS cuts it anyway) and
+    // pick it up again when the app is shown.
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        if (audioSourceRef.current === 'mic') stopAll();
+      } else if (wantMicRef.current && audioSourceRef.current !== 'mic') {
+        void startMicrophone();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+    // Mount-only: startMicrophone and stopAll are stable callbacks
+  }, []);
+
   const playStringTone = useCallback(
     (stringNumber: number, loop: boolean = false) => {
       const targetStr =
@@ -241,6 +283,22 @@ export default function App() {
     },
     [persisted.isManualMode, playStringTone]
   );
+
+  const manualStringSelectRef = React.useRef<HTMLSelectElement | null>(null);
+
+  // Open the string dropdown right after tapping "手动定弦". showPicker() needs the tap's user
+  // activation (still valid on the next frame); browsers without it just show the dropdown.
+  const openManualStringPicker = () => {
+    requestAnimationFrame(() => {
+      const select = manualStringSelectRef.current;
+      if (!select) return;
+      try {
+        (select as HTMLSelectElement & { showPicker?: () => void }).showPicker?.();
+      } catch {
+        select.focus();
+      }
+    });
+  };
 
   const handleToggleMode = (manual: boolean) => {
     stopReferenceTone();
@@ -342,9 +400,9 @@ export default function App() {
   );
 
   return (
-    <div className="min-h-screen bg-[#111214] text-[#F3F4F6] flex flex-col">
+    <div className="min-h-screen bg-app text-gray-100 flex flex-col">
       {/* Compact Sticky Top Bar (52px mobile, 3-zone desktop) */}
-      <header className="sticky top-0 z-30 h-[52px] bg-[#111214]/90 backdrop-blur-md border-b border-white/[0.08] px-4 lg:px-8 flex items-center justify-between gap-4">
+      <header className="sticky top-0 z-30 h-[52px] bg-app/90 backdrop-blur-md border-b border-white/[0.08] px-4 lg:px-8 flex items-center justify-between gap-4">
         <div className="flex items-center gap-2.5 shrink-0">
           <Guitar className="w-5 h-5 text-emerald-400 shrink-0" aria-hidden="true" />
           <span className="font-display text-base sm:text-lg font-bold tracking-tight whitespace-nowrap">
@@ -364,7 +422,7 @@ export default function App() {
               type="button"
               onClick={resetTunedProgress}
               aria-label="重置已调准琴弦进度"
-              className="min-h-[36px] flex items-center gap-1 rounded-lg bg-[#1D1F25] border border-white/10 px-2.5 text-xs text-gray-300 hover:text-white whitespace-nowrap shrink-0"
+              className="min-h-[36px] flex items-center gap-1 rounded-lg bg-raised border border-white/10 px-2.5 text-xs text-gray-300 hover:text-white whitespace-nowrap shrink-0"
             >
               <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
               <span className="hidden sm:inline">重置进度 ({audioState.tunedStrings.length}/6)</span>
@@ -400,11 +458,33 @@ export default function App() {
             </div>
             <button
               type="button"
-              onClick={startSimulator}
+              onClick={handleStartSimulator}
               className="min-h-[40px] rounded-xl bg-amber-400 px-3.5 text-xs font-semibold text-slate-950 hover:bg-amber-300 whitespace-nowrap shrink-0"
             >
               使用试音模拟
             </button>
+          </div>
+        )}
+
+        {audioState.source === 'mic' && audioState.needsUserGesture && (
+          <button
+            type="button"
+            data-testid="tap-to-listen"
+            className="mb-4 w-full rounded-2xl bg-emerald-500/10 border border-emerald-500/30 p-3.5 flex items-center justify-center gap-2.5 text-sm text-emerald-100"
+          >
+            <Mic className="w-4 h-4 text-emerald-300 shrink-0" aria-hidden="true" />
+            <span>浏览器需要先点一下：轻触屏幕任意位置开始监听</span>
+          </button>
+        )}
+
+        {audioState.source === 'mic' && audioState.isClipping && (
+          <div
+            role="status"
+            data-testid="clipping-warning"
+            className="mb-4 rounded-2xl bg-amber-400/10 border border-amber-400/30 p-3.5 flex items-start gap-2.5 text-xs sm:text-sm text-amber-100"
+          >
+            <AlertCircle className="w-4 h-4 text-amber-300 shrink-0 mt-0.5" aria-hidden="true" />
+            <span>声音太大，麦克风已过载，读数可能跳动。请让手机离琴远一点，或弹轻一些。</span>
           </div>
         )}
 
@@ -419,7 +499,7 @@ export default function App() {
             <div
               role="tablist"
               aria-label="调音模式切换"
-              className="grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-[#181A1F] border border-white/[0.08]"
+              className="grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-surface border border-white/[0.08]"
             >
               <button
                 type="button"
@@ -440,7 +520,10 @@ export default function App() {
                 role="tab"
                 aria-selected={persisted.isManualMode}
                 data-testid="mode-manual"
-                onClick={() => handleToggleMode(true)}
+                onClick={() => {
+                  handleToggleMode(true);
+                  openManualStringPicker();
+                }}
                 className={`min-h-[44px] rounded-xl text-sm font-semibold transition-colors whitespace-nowrap ${
                   persisted.isManualMode
                     ? 'bg-emerald-500 text-slate-950 shadow-sm'
@@ -450,6 +533,35 @@ export default function App() {
                 手动定弦（锁定音调）
               </button>
             </div>
+
+            {/* Target string picker, right under the mode switch so no scrolling to the headstock */}
+            {persisted.isManualMode && (
+              <label className="flex items-center gap-3 rounded-2xl bg-surface border border-white/[0.08] px-3.5 py-2">
+                <span className="text-sm text-gray-300 whitespace-nowrap">目标琴弦</span>
+                <select
+                  ref={manualStringSelectRef}
+                  data-testid="manual-string-select"
+                  value={persisted.selectedManualString}
+                  onChange={(e) => handleSelectPeg(Number(e.target.value))}
+                  className="flex-1 min-w-0 min-h-[44px] rounded-xl bg-control border border-white/10 px-3 text-sm font-semibold text-gray-100 font-mono-tabular [color-scheme:dark]"
+                >
+                  {[...persisted.workingStrings]
+                    .sort((a, b) => b.stringNumber - a.stringNumber)
+                    .map((s) => {
+                      const d = midiToNoteDisplay(
+                        applyCapoToMidi(s.midi, persisted.capo),
+                        persisted.a4Freq,
+                        persisted.preferFlats
+                      );
+                      return (
+                        <option key={s.stringNumber} value={s.stringNumber}>
+                          {s.stringNumber} 弦 · {d.fullLabel} · {d.frequency.toFixed(1)} Hz
+                        </option>
+                      );
+                    })}
+                </select>
+              </label>
+            )}
 
             {/* Precision Tuner Dial */}
             <TunerDial
@@ -474,7 +586,7 @@ export default function App() {
               {audioState.source === 'mic' ? (
                 <button
                   type="button"
-                  onClick={stopAll}
+                  onClick={handleStopMic}
                   data-testid="btn-mic-toggle"
                   className="min-h-[48px] flex items-center justify-center gap-2 rounded-xl bg-rose-500/20 border border-rose-500/40 px-4 text-sm font-semibold text-rose-200 hover:bg-rose-500/30 active:scale-[0.98] transition-all"
                 >
@@ -484,7 +596,7 @@ export default function App() {
               ) : (
                 <button
                   type="button"
-                  onClick={startMicrophone}
+                  onClick={handleStartMic}
                   data-testid="btn-mic-toggle"
                   className="min-h-[48px] flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 text-sm font-semibold text-slate-950 hover:bg-emerald-400 active:scale-[0.98] transition-all"
                 >
@@ -509,7 +621,7 @@ export default function App() {
                     type="button"
                     onClick={() => playStringTone(persisted.selectedManualString, true)}
                     data-testid="btn-reference-tone"
-                    className="min-h-[48px] flex items-center justify-center gap-2 rounded-xl bg-[#23262E] border border-white/10 px-4 text-sm font-semibold text-gray-100 hover:bg-[#2C303A] active:scale-[0.98] transition-all"
+                    className="min-h-[48px] flex items-center justify-center gap-2 rounded-xl bg-control border border-white/10 px-4 text-sm font-semibold text-gray-100 hover:bg-control-hover active:scale-[0.98] transition-all"
                   >
                     <Volume2 className="w-4 h-4 shrink-0 text-amber-300" aria-hidden="true" />
                     <span>持续播放参考音 ({selectedStringDisplay.fullLabel})</span>
@@ -518,7 +630,7 @@ export default function App() {
               ) : audioState.source === 'simulator' ? (
                 <button
                   type="button"
-                  onClick={stopAll}
+                  onClick={handleStopSimulator}
                   data-testid="btn-sim-toggle"
                   className="min-h-[48px] flex items-center justify-center gap-2 rounded-xl bg-amber-400/20 border border-amber-400/50 px-4 text-sm font-semibold text-amber-200 hover:bg-amber-400/30 active:scale-[0.98] transition-all"
                 >
@@ -528,9 +640,9 @@ export default function App() {
               ) : (
                 <button
                   type="button"
-                  onClick={startSimulator}
+                  onClick={handleStartSimulator}
                   data-testid="btn-sim-toggle"
-                  className="min-h-[48px] flex items-center justify-center gap-2 rounded-xl bg-[#23262E] border border-white/10 px-4 text-sm font-semibold text-gray-100 hover:bg-[#2C303A] active:scale-[0.98] transition-all"
+                  className="min-h-[48px] flex items-center justify-center gap-2 rounded-xl bg-control border border-white/10 px-4 text-sm font-semibold text-gray-100 hover:bg-control-hover active:scale-[0.98] transition-all"
                 >
                   <SlidersHorizontal className="w-4 h-4 shrink-0 text-amber-300" aria-hidden="true" />
                   <span>内置吉他试音模拟</span>
@@ -549,7 +661,7 @@ export default function App() {
                 simDetuneCents={simDetuneCents}
                 onChangeSimString={setSimStringNumber}
                 onChangeSimDetune={setSimDetuneCents}
-                onStopSimulator={stopAll}
+                onStopSimulator={handleStopSimulator}
               />
             )}
 
@@ -558,7 +670,7 @@ export default function App() {
               <div className="flex justify-end">
                 <button
                   type="button"
-                  onClick={startSimulator}
+                  onClick={handleStartSimulator}
                   data-testid="btn-sim-toggle"
                   className="text-xs text-gray-400 hover:text-amber-300 underline underline-offset-4 transition-colors"
                 >
@@ -589,14 +701,14 @@ export default function App() {
           {/* Right / Studio Configuration Column (Desktop) & Mobile Sub-Tabs */}
           <div className="lg:col-span-5 space-y-4">
             {/* Desktop Studio Panel Tab Switcher */}
-            <div className="hidden lg:grid grid-cols-3 gap-1.5 p-1 rounded-2xl bg-[#181A1F] border border-white/[0.08]">
+            <div className="hidden lg:grid grid-cols-3 gap-1.5 p-1 rounded-2xl bg-surface border border-white/[0.08]">
               <button
                 type="button"
                 onClick={() => setDesktopSideTab('tunings')}
                 data-testid="desktop-tab-tunings"
                 className={`min-h-[44px] rounded-xl text-xs xl:text-sm font-semibold transition-colors whitespace-nowrap px-2 ${
                   desktopSideTab === 'tunings'
-                    ? 'bg-[#262A33] text-white'
+                    ? 'bg-control-hover text-white'
                     : 'text-gray-400 hover:text-gray-200'
                 }`}
               >
@@ -608,7 +720,7 @@ export default function App() {
                 data-testid="desktop-tab-metronome"
                 className={`min-h-[44px] rounded-xl text-xs xl:text-sm font-semibold transition-colors whitespace-nowrap px-2 ${
                   desktopSideTab === 'metronome'
-                    ? 'bg-[#262A33] text-white'
+                    ? 'bg-control-hover text-white'
                     : 'text-gray-400 hover:text-gray-200'
                 }`}
               >
@@ -620,7 +732,7 @@ export default function App() {
                 data-testid="desktop-tab-settings"
                 className={`min-h-[44px] rounded-xl text-xs xl:text-sm font-semibold transition-colors whitespace-nowrap px-2 ${
                   desktopSideTab === 'settings'
-                    ? 'bg-[#262A33] text-white'
+                    ? 'bg-control-hover text-white'
                     : 'text-gray-400 hover:text-gray-200'
                 }`}
               >
@@ -724,7 +836,7 @@ export default function App() {
       {/* Mobile Bottom Tab Bar (64px height, Natural Thumb Zone, <= 15% total sticky height) */}
       <nav
         aria-label="移动端主导航"
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#14161A]/95 backdrop-blur-md border-t border-white/[0.08] pb-safe"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-nav/95 backdrop-blur-md border-t border-white/[0.08] pb-safe"
       >
         <div className="grid grid-cols-4 h-16 items-center">
           <button

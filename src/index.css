@@ -1,18 +1,55 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Semantic surface tokens (dark only). Use bg-surface / border-control etc. instead of raw hex. */
+@theme {
+  --color-app: #111214;
+  --color-nav: #14161A;
+  --color-inset: #121316;
+  --color-surface: #181A1F;
+  --color-raised: #1D1F25;
+  --color-control: #23262E;
+  --color-control-hover: #2C303A;
+}
+
 @layer base {
   :root {
     --font-display: 'Outfit', 'PingFang SC', 'Microsoft YaHei', sans-serif;
     --font-sans: 'Plus Jakarta Sans', 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
+    color-scheme: dark;
   }
 
   body {
     font-family: var(--font-sans);
-    background-color: #111214;
+    background-color: var(--color-app);
     color: #F3F4F6;
     -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Tailwind v4 no longer sets a pointer cursor on buttons */
+  button:not(:disabled),
+  [role='button'],
+  [role='tab'],
+  select,
+  label:has(> input[type='checkbox']) {
+    cursor: pointer;
+  }
+
+  /* Remove the 300 ms double-tap delay on controls */
+  button,
+  a,
+  select,
+  input,
+  [role='button'],
+  [role='tab'] {
+    touch-action: manipulation;
+  }
+
+  /* Visible keyboard focus everywhere; mouse/touch focus stays clean */
+  :focus-visible {
+    outline: 2px solid #34D399;
+    outline-offset: 2px;
   }
 }
 
@@ -25,8 +62,18 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Safe areas: iOS standalone uses black-translucent, so content would sit under the status bar */
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
 .pb-safe {
   padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+
+/* Room for the fixed mobile tab bar (64px) plus the home indicator */
+.pb-tabbar {
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
 }
 
 @media (prefers-reduced-motion: reduce) {

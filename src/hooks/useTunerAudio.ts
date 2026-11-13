@@ -8,10 +8,12 @@ import {
   midiToFrequency,
 } from '../utils/musicTheory';
 import {
+  computeRms,
   detectPitchYin,
   filterStableFrequency,
   generateGuitarWaveform,
 } from '../utils/pitchDetection';
+import { ClippingMonitor, SignalGate } from '../utils/signalGate';
 
 export type InputSource = 'idle' | 'mic' | 'simulator';
 
@@ -22,6 +24,10 @@ export interface TunerAudioState {
   rms: number;
   isSignalActive: boolean;
   isLockedInTune: boolean;
+  /** Microphone input is overloaded (samples at full scale). */
+  isClipping: boolean;
+  /** Browser autoplay policy keeps audio suspended until the user taps the page. */
+  needsUserGesture: boolean;
   error: string | null;
   tunedStrings: number[];
 }
@@ -58,6 +64,8 @@ export function useTunerAudio(options: UseTunerAudioOptions) {
     rms: 0,
     isSignalActive: false,
     isLockedInTune: false,
+    isClipping: false,
+    needsUserGesture: false,
     error: null,
     tunedStrings: [],
   });
@@ -81,8 +89,17 @@ export function useTunerAudio(options: UseTunerAudioOptions) {
   const inTuneSinceRef = useRef<number | null>(null);
   const simTimeRef = useRef<number>(0);
   const tunedSetRef = useRef<Set<number>>(new Set());
+  const rawAnalyserRef = useRef<AnalyserNode | null>(null);
+  const signalGateRef = useRef(new SignalGate());
+  const clippingMonitorRef = useRef(new ClippingMonitor());
+  const isClippingRef = useRef(false);
+  const startIdRef = useRef(0);
+  const gestureCleanupRef = useRef<(() => void) | null>(null);
 
   const stopAll = useCallback(() => {
+    startIdRef.current++;
+    gestureCleanupRef.current?.();
+    gestureCleanupRef.current = null;
     if (rafRef.current !== null) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
@@ -96,6 +113,10 @@ export function useTunerAudio(options: UseTunerAudioOptions) {
       audioCtxRef.current = null;
     }
     analyserRef.current = null;
+    rawAnalyserRef.current = null;
+    signalGateRef.current.reset();
+    clippingMonitorRef.current.reset();
+    isClippingRef.current = false;
     sourceRef.current = 'idle';
     freqHistoryRef.current = [];
     smoothedFreqRef.current = null;
@@ -112,6 +133,8 @@ export function useTunerAudio(options: UseTunerAudioOptions) {
       rms: 0,
       isSignalActive: false,
       isLockedInTune: false,
+      isClipping: false,
+      needsUserGesture: false,
     }));
   }, []);
 
@@ -120,14 +143,37 @@ export function useTunerAudio(options: UseTunerAudioOptions) {
     setState((prev) => ({ ...prev, tunedStrings: [] }));
   }, []);
 
-  const processBuffer = useCallback((buffer: Float32Array, sampleRate: number, nowMs: number) => {
+  const processBuffer = useCallback((
+    buffer: Float32Array,
+    sampleRate: number,
+    nowMs: number,
+    rawBuffer?: Float32Array
+  ) => {
     const opts = optionsRef.current;
+    const isMic = sourceRef.current === 'mic';
 
     // Copy downsampled waveform for visual oscillogram
     const targetLen = waveformRef.current.length;
     const step = Math.max(1, Math.floor(buffer.length / targetLen));
     for (let i = 0; i < targetLen; i++) {
       waveformRef.current[i] = buffer[Math.min(buffer.length - 1, i * step)];
+    }
+
+    if (isMic && rawBuffer) {
+      const clipping = clippingMonitorRef.current.update(rawBuffer, nowMs);
+      if (clipping !== isClippingRef.current) {
+        isClippingRef.current = clipping;
+        setState((prev) => ({ ...prev, isClipping: clipping }));
+      }
+    }
+
+    // Steady hum is periodic and passes the pitch detector, so a new track needs a pluck onset
+    // and an active track ends once the level sinks back to the noise floor.
+    let passesSignalGate = true;
+    if (isMic) {
+      const gate = signalGateRef.current.update(computeRms(buffer), nowMs);
+      passesSignalGate =
+        smoothedFreqRef.current === null ? gate.canStartTrack && gate.aboveFloor : gate.aboveFloor;
     }
 
     const result = detectPitchYin(buffer, sampleRate, {
@@ -153,7 +199,7 @@ export function useTunerAudio(options: UseTunerAudioOptions) {
 
     const minClarity = sourceRef.current === 'mic' ? 0.82 : 0.72;
 
-    if (result && result.clarity >= minClarity && !isAttackTransient) {
+    if (result && passesSignalGate && result.clarity >= minClarity && !isAttackTransient) {
       const candidateMatch = opts.isChromatic
         ? matchChromaticNote(result.frequency, opts.a4Freq, opts.preferFlats)
         : matchGuitarString(
@@ -246,6 +292,8 @@ export function useTunerAudio(options: UseTunerAudioOptions) {
           isSignalActive: true,
           isLockedInTune: isLocked,
           error: null,
+          isClipping: isClippingRef.current,
+          needsUserGesture: false,
           tunedStrings: Array.from(tunedSetRef.current),
         });
         return;
@@ -282,6 +330,7 @@ export function useTunerAudio(options: UseTunerAudioOptions) {
       return;
     }
 
+    const startId = ++startIdRef.current;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -291,12 +340,43 @@ export function useTunerAudio(options: UseTunerAudioOptions) {
           channelCount: 1,
         },
       });
+      // Stopped or restarted (e.g. simulator tapped) while the permission prompt was open
+      if (startId !== startIdRef.current) {
+        stream.getTracks().forEach((t) => t.stop());
+        return;
+      }
       const AudioCtx =
         window.AudioContext ||
         (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       const ctx = new AudioCtx();
-      if (ctx.state === 'suspended') {
-        await ctx.resume();
+      // Autoplay policy: without a user gesture the context may stay suspended, and resume()
+      // can stay pending until one happens. Don't block on it; resume on the first tap instead.
+      if (ctx.state !== 'running') {
+        void ctx.resume().catch(() => undefined);
+        const resumeOnGesture = () => {
+          void ctx.resume().catch(() => undefined);
+        };
+        // Only some events grant user activation (touch: touchend / pointerup / click), so listen to all
+        const events = ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'] as const;
+        events.forEach((e) => document.addEventListener(e, resumeOnGesture, true));
+        const cleanup = () => {
+          events.forEach((e) => document.removeEventListener(e, resumeOnGesture, true));
+          ctx.onstatechange = null;
+        };
+        gestureCleanupRef.current = cleanup;
+        ctx.onstatechange = () => {
+          const running = ctx.state === 'running';
+          setState((prev) =>
+            prev.needsUserGesture === !running ? prev : { ...prev, needsUserGesture: !running }
+          );
+          if (running) {
+            cleanup();
+            gestureCleanupRef.current = null;
+          }
+        };
+        if ((ctx.state as AudioContextState) !== 'running') {
+          setState((prev) => ({ ...prev, needsUserGesture: true }));
+        }
       }
       const source = ctx.createMediaStreamSource(stream);
 
@@ -319,12 +399,21 @@ export function useTunerAudio(options: UseTunerAudioOptions) {
       highPass.connect(lowPass);
       lowPass.connect(analyser);
 
+      // Unfiltered tap for clipping detection: full-scale samples only show on the raw input.
+      // 4096 samples (~85 ms) cover the gap between analysis ticks even on slow frames.
+      const rawAnalyser = ctx.createAnalyser();
+      rawAnalyser.fftSize = 4096;
+      rawAnalyser.smoothingTimeConstant = 0;
+      source.connect(rawAnalyser);
+
       audioCtxRef.current = ctx;
       streamRef.current = stream;
       analyserRef.current = analyser;
+      rawAnalyserRef.current = rawAnalyser;
       sourceRef.current = 'mic';
 
       const buffer = new Float32Array(analyser.fftSize);
+      const rawBuffer = new Float32Array(rawAnalyser.fftSize);
       let lastTick = 0;
 
       setState((prev) => ({ ...prev, source: 'mic', error: null }));
@@ -335,12 +424,14 @@ export function useTunerAudio(options: UseTunerAudioOptions) {
         if (time - lastTick >= 28) {
           lastTick = time;
           analyserRef.current.getFloatTimeDomainData(buffer);
-          processBuffer(buffer, audioCtxRef.current.sampleRate, time);
+          rawAnalyserRef.current?.getFloatTimeDomainData(rawBuffer);
+          processBuffer(buffer, audioCtxRef.current.sampleRate, time, rawBuffer);
         }
         rafRef.current = requestAnimationFrame(loop);
       };
       rafRef.current = requestAnimationFrame(loop);
     } catch (err) {
+      if (startId !== startIdRef.current) return;
       const message =
         err instanceof Error && err.name === 'NotAllowedError'
           ? '麦克风权限被拒绝。请在浏览器或系统设置中允许麦克风访问，或点击“试音模拟”体验自动识别。'

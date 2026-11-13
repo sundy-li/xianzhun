@@ -154,7 +154,7 @@ export const TunerDial: React.FC<TunerDialProps> = ({
       data-signal-active={isSignalActive ? 'true' : 'false'}
       data-locked={isLockedInTune ? 'true' : 'false'}
       data-direction={guidance?.direction ?? 'idle'}
-      className="relative rounded-2xl bg-[#181A1F] border border-white/[0.08] p-4 sm:p-6 flex flex-col items-center"
+      className="relative rounded-2xl bg-surface border border-white/[0.08] p-4 sm:p-6 flex flex-col items-center"
     >
       {/* Top Status Line (Clean unboxed metadata) */}
       <div className="w-full flex items-center justify-between text-xs text-gray-400 mb-2">
@@ -357,7 +357,7 @@ export const TunerDial: React.FC<TunerDialProps> = ({
       </div>
 
       {/* Live Micro-Oscilloscope Strip */}
-      <div className="w-full mt-3 rounded-xl bg-[#121316] border border-white/[0.05] px-2 py-1">
+      <div className="w-full mt-3 rounded-xl bg-inset border border-white/[0.05] px-2 py-1">
         <canvas
           ref={canvasRef}
           width={480}

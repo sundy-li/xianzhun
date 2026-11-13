@@ -59,7 +59,7 @@ export const MetronomePanel: React.FC<MetronomePanelProps> = ({
         aria-label="节拍器控制面板"
         data-testid="metronome-panel"
         data-playing={isPlaying ? 'true' : 'false'}
-        className="rounded-2xl bg-[#181A1F] border border-white/[0.08] p-4 sm:p-5 space-y-4"
+        className="rounded-2xl bg-surface border border-white/[0.08] p-4 sm:p-5 space-y-4"
       >
         <div className="flex items-center justify-between gap-2 text-xs text-gray-400">
           <span className="font-medium text-gray-300">
@@ -93,10 +93,10 @@ export const MetronomePanel: React.FC<MetronomePanelProps> = ({
                       ? 'bg-amber-400 border-amber-300 text-slate-950 scale-[1.03]'
                       : 'bg-emerald-500 border-emerald-400 text-slate-950 scale-[1.02]'
                     : isStrong
-                      ? 'bg-[#1F2229] border-amber-400/30 text-amber-300'
+                      ? 'bg-raised border-amber-400/30 text-amber-300'
                       : isSecondary
-                        ? 'bg-[#1D2027] border-white/15 text-gray-200'
-                        : 'bg-[#14161A] border-white/[0.06] text-gray-400'
+                        ? 'bg-raised border-white/15 text-gray-200'
+                        : 'bg-nav border-white/[0.06] text-gray-400'
                 }`}
               >
                 <span className="font-mono-tabular text-sm font-bold">{idx + 1}</span>
@@ -151,7 +151,7 @@ export const MetronomePanel: React.FC<MetronomePanelProps> = ({
               disabled={bpm <= MIN_BPM}
               aria-label="降低 5 BPM"
               data-testid="bpm-minus-5"
-              className="min-h-[44px] rounded-xl bg-[#23262E] border border-white/10 text-xs font-mono-tabular font-semibold text-gray-200 hover:bg-[#2C303A] disabled:opacity-40"
+              className="min-h-[44px] rounded-xl bg-control border border-white/10 text-xs font-mono-tabular font-semibold text-gray-200 hover:bg-control-hover disabled:opacity-40"
             >
               -5
             </button>
@@ -161,7 +161,7 @@ export const MetronomePanel: React.FC<MetronomePanelProps> = ({
               disabled={bpm <= MIN_BPM}
               aria-label="降低 1 BPM"
               data-testid="bpm-minus-1"
-              className="min-h-[44px] flex items-center justify-center rounded-xl bg-[#23262E] border border-white/10 text-gray-200 hover:bg-[#2C303A] disabled:opacity-40"
+              className="min-h-[44px] flex items-center justify-center rounded-xl bg-control border border-white/10 text-gray-200 hover:bg-control-hover disabled:opacity-40"
             >
               <Minus className="w-4 h-4" />
             </button>
@@ -170,7 +170,7 @@ export const MetronomePanel: React.FC<MetronomePanelProps> = ({
               onClick={handleTapTempo}
               aria-label="点击测速打拍"
               data-testid="btn-tap-tempo"
-              className="min-h-[44px] flex items-center justify-center gap-1 rounded-xl bg-[#23262E] border border-white/10 px-2 text-xs font-semibold text-amber-300 hover:bg-[#2C303A] active:scale-95 transition-all whitespace-nowrap"
+              className="min-h-[44px] flex items-center justify-center gap-1 rounded-xl bg-control border border-white/10 px-2 text-xs font-semibold text-amber-300 hover:bg-control-hover active:scale-95 transition-all whitespace-nowrap"
             >
               <Hand className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
               <span>测速</span>
@@ -181,7 +181,7 @@ export const MetronomePanel: React.FC<MetronomePanelProps> = ({
               disabled={bpm >= MAX_BPM}
               aria-label="升高 1 BPM"
               data-testid="bpm-plus-1"
-              className="min-h-[44px] flex items-center justify-center rounded-xl bg-[#23262E] border border-white/10 text-gray-200 hover:bg-[#2C303A] disabled:opacity-40"
+              className="min-h-[44px] flex items-center justify-center rounded-xl bg-control border border-white/10 text-gray-200 hover:bg-control-hover disabled:opacity-40"
             >
               <Plus className="w-4 h-4" />
             </button>
@@ -191,7 +191,7 @@ export const MetronomePanel: React.FC<MetronomePanelProps> = ({
               disabled={bpm >= MAX_BPM}
               aria-label="升高 5 BPM"
               data-testid="bpm-plus-5"
-              className="min-h-[44px] rounded-xl bg-[#23262E] border border-white/10 text-xs font-mono-tabular font-semibold text-gray-200 hover:bg-[#2C303A] disabled:opacity-40"
+              className="min-h-[44px] rounded-xl bg-control border border-white/10 text-xs font-mono-tabular font-semibold text-gray-200 hover:bg-control-hover disabled:opacity-40"
             >
               +5
             </button>
@@ -224,7 +224,7 @@ export const MetronomePanel: React.FC<MetronomePanelProps> = ({
       </section>
 
       {/* Time Signature Selector */}
-      <section className="rounded-2xl bg-[#181A1F] border border-white/[0.08] p-4 space-y-3">
+      <section className="rounded-2xl bg-surface border border-white/[0.08] p-4 space-y-3">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-gray-100">节拍类型（拍号）</h2>
           <span className="text-xs text-gray-400">{timeSignature.description}</span>
@@ -243,7 +243,7 @@ export const MetronomePanel: React.FC<MetronomePanelProps> = ({
                 className={`min-h-[44px] rounded-xl font-mono-tabular text-sm font-semibold border transition-colors ${
                   active
                     ? 'bg-emerald-500/15 border-emerald-400/60 text-emerald-300'
-                    : 'bg-[#1D1F25] border-white/[0.08] text-gray-300 hover:bg-[#242730]'
+                    : 'bg-raised border-white/[0.08] text-gray-300 hover:bg-control'
                 }`}
               >
                 {ts.label}
@@ -271,7 +271,7 @@ export const MetronomePanel: React.FC<MetronomePanelProps> = ({
             className={`relative inline-flex h-8 w-14 shrink-0 items-center rounded-full border transition-colors ${
               accentFirstBeat
                 ? 'bg-emerald-500 border-emerald-400'
-                : 'bg-[#262A32] border-white/10'
+                : 'bg-control-hover border-white/10'
             }`}
           >
             <span

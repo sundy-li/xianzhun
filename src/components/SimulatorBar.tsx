@@ -29,7 +29,7 @@ export const SimulatorBar: React.FC<SimulatorBarProps> = ({
     <section
       aria-label="内置吉他信号模拟器"
       data-testid="simulator-bar"
-      className="rounded-2xl bg-[#181A1F] border border-amber-500/30 p-4 space-y-3"
+      className="rounded-2xl bg-surface border border-amber-500/30 p-4 space-y-3"
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-xs font-semibold text-amber-300">
@@ -60,7 +60,7 @@ export const SimulatorBar: React.FC<SimulatorBarProps> = ({
               className={`min-h-[40px] rounded-lg text-xs font-semibold border transition-colors ${
                 active
                   ? 'bg-amber-400/20 border-amber-400 text-amber-200'
-                  : 'bg-[#121316] border-white/10 text-gray-300 hover:bg-[#23262E]'
+                  : 'bg-inset border-white/10 text-gray-300 hover:bg-control'
               }`}
             >
               {s.stringNumber}弦 {disp.noteName}
@@ -94,7 +94,7 @@ export const SimulatorBar: React.FC<SimulatorBarProps> = ({
             type="button"
             onClick={() => onChangeSimDetune(-22)}
             data-testid="sim-detune-flat"
-            className="min-h-[36px] rounded-lg bg-[#23262E] text-xs text-amber-300 hover:bg-[#2C303A]"
+            className="min-h-[36px] rounded-lg bg-control text-xs text-amber-300 hover:bg-control-hover"
           >
             偏低 -22¢
           </button>
@@ -102,7 +102,7 @@ export const SimulatorBar: React.FC<SimulatorBarProps> = ({
             type="button"
             onClick={() => onChangeSimDetune(0)}
             data-testid="sim-detune-zero"
-            className="min-h-[36px] rounded-lg bg-[#23262E] text-xs text-emerald-300 hover:bg-[#2C303A]"
+            className="min-h-[36px] rounded-lg bg-control text-xs text-emerald-300 hover:bg-control-hover"
           >
             精准 0¢
           </button>
@@ -110,7 +110,7 @@ export const SimulatorBar: React.FC<SimulatorBarProps> = ({
             type="button"
             onClick={() => onChangeSimDetune(24)}
             data-testid="sim-detune-sharp"
-            className="min-h-[36px] rounded-lg bg-[#23262E] text-xs text-rose-300 hover:bg-[#2C303A]"
+            className="min-h-[36px] rounded-lg bg-control text-xs text-rose-300 hover:bg-control-hover"
           >
             偏高 +24¢
           </button>

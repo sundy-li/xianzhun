@@ -72,8 +72,8 @@ export const HeadstockPegboard: React.FC<HeadstockPegboardProps> = ({
           isActive
             ? 'bg-emerald-500/15 border-emerald-400/60 text-white'
             : isTuned
-              ? 'bg-[#1E2229] border-emerald-500/30 text-gray-100'
-              : 'bg-[#1D1F25] border-white/[0.08] text-gray-200 hover:bg-[#252830] hover:border-white/15'
+              ? 'bg-raised border-emerald-500/30 text-gray-100'
+              : 'bg-raised border-white/[0.08] text-gray-200 hover:bg-control-hover hover:border-white/15'
         } ${align === 'right' ? 'flex-row-reverse text-right' : 'text-left'}`}
       >
         <div className="flex flex-col min-w-0">
@@ -96,7 +96,7 @@ export const HeadstockPegboard: React.FC<HeadstockPegboardProps> = ({
               ? 'bg-amber-400 text-slate-950'
               : isActive
                 ? 'bg-emerald-500 text-slate-950'
-                : 'bg-[#2A2E37] text-gray-400 group-hover:text-gray-200'
+                : 'bg-control-hover text-gray-400 group-hover:text-gray-200'
           }`}
         >
           <Volume2 className="w-3.5 h-3.5" aria-hidden="true" />
@@ -108,7 +108,7 @@ export const HeadstockPegboard: React.FC<HeadstockPegboardProps> = ({
   return (
     <section
       aria-label="琴头弦钮选择"
-      className="rounded-2xl bg-[#181A1F] border border-white/[0.08] p-4 sm:p-5"
+      className="rounded-2xl bg-surface border border-white/[0.08] p-4 sm:p-5"
     >
       <div className="flex items-center justify-between gap-2 mb-3">
         <div>
@@ -138,7 +138,7 @@ export const HeadstockPegboard: React.FC<HeadstockPegboardProps> = ({
         {/* Central Guitar Neck & String Gauge Visualization */}
         <div
           aria-hidden="true"
-          className="h-full min-h-[180px] rounded-xl bg-[#121316] border border-white/[0.06] flex items-center justify-evenly px-1.5 py-2"
+          className="h-full min-h-[180px] rounded-xl bg-inset border border-white/[0.06] flex items-center justify-evenly px-1.5 py-2"
         >
           {[6, 5, 4, 3, 2, 1].map((strNum) => {
             const isSelected =
@@ -184,7 +184,7 @@ export const HeadstockPegboard: React.FC<HeadstockPegboardProps> = ({
               onClick={() => onShiftStringPitch(selectedStringObj.stringNumber, -1)}
               aria-label={`降低第 ${selectedStringObj.stringNumber} 弦半音`}
               data-testid="manual-pitch-down"
-              className="min-h-[40px] min-w-[44px] flex items-center justify-center gap-1 rounded-lg bg-[#23262E] border border-white/10 px-2.5 text-xs font-medium text-gray-200 hover:bg-[#2C303A] active:scale-95 transition-all"
+              className="min-h-[40px] min-w-[44px] flex items-center justify-center gap-1 rounded-lg bg-control border border-white/10 px-2.5 text-xs font-medium text-gray-200 hover:bg-control-hover active:scale-95 transition-all"
             >
               <Minus className="w-3.5 h-3.5" aria-hidden="true" />
               <span>半音</span>
@@ -194,7 +194,7 @@ export const HeadstockPegboard: React.FC<HeadstockPegboardProps> = ({
               onClick={() => onShiftStringPitch(selectedStringObj.stringNumber, 1)}
               aria-label={`升高第 ${selectedStringObj.stringNumber} 弦半音`}
               data-testid="manual-pitch-up"
-              className="min-h-[40px] min-w-[44px] flex items-center justify-center gap-1 rounded-lg bg-[#23262E] border border-white/10 px-2.5 text-xs font-medium text-gray-200 hover:bg-[#2C303A] active:scale-95 transition-all"
+              className="min-h-[40px] min-w-[44px] flex items-center justify-center gap-1 rounded-lg bg-control border border-white/10 px-2.5 text-xs font-medium text-gray-200 hover:bg-control-hover active:scale-95 transition-all"
             >
               <Plus className="w-3.5 h-3.5" aria-hidden="true" />
               <span>半音</span>
