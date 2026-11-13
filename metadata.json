@@ -1,6 +1,0 @@
-{
-  "name": "弦准吉他调音器",
-  "description": "专业吉他调音器应用，支持自动识别琴弦与手动设定音调调弦、听音定弦及 A4 基准音校准。",
-  "requestFramePermissions": ["microphone"],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

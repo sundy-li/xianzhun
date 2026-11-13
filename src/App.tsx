@@ -408,12 +408,12 @@ export default function App() {
     <div className="min-h-screen desk:h-dvh desk:min-h-0 desk:overflow-hidden bg-app text-gray-100 flex flex-col">
       {/* Sticky top bar: brand, current tuning (tap to change), utility actions */}
       <header className="sticky top-0 z-30 bg-app/90 backdrop-blur-md border-b border-white/[0.08] pt-safe">
-        <div className="h-14 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-3">
+        <div className="h-14 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-2 sm:gap-3">
         <div className="flex items-center gap-2 shrink-0">
           <Guitar className="w-5 h-5 text-emerald-400 shrink-0" aria-hidden="true" />
-          <h1 className="font-display text-base sm:text-lg font-bold tracking-tight whitespace-nowrap">
-            <span className="sm:hidden">{t.app.brandShort}</span>
-            <span className="hidden sm:inline">{t.app.brandFull}</span>
+          {/* Phones show only the icon so the tuning chip keeps its room */}
+          <h1 className="sr-only sm:not-sr-only font-display text-lg font-bold tracking-tight whitespace-nowrap">
+            {t.app.brandFull}
           </h1>
         </div>
 
@@ -438,7 +438,10 @@ export default function App() {
           >
             {lang === 'zh' ? 'EN' : '中'}
           </button>
-          <PWAInstallButton variant="compact" />
+          {/* On phones the install card lives in Settings */}
+          <div className="hidden sm:block">
+            <PWAInstallButton variant="compact" />
+          </div>
           {audioState.tunedStrings.length > 0 && (
             <button
               type="button"

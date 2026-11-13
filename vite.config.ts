@@ -14,8 +14,8 @@ export default defineConfig(() => {
         includeAssets: ['apple-touch-icon.png', 'icon.svg', 'pwa-192x192.png', 'pwa-512x512.png', 'pwa-maskable-512x512.png'],
         manifest: {
           id: '/',
-          name: '弦准吉他调音器',
-          short_name: '弦准调音',
+          name: '弦准吉他调音器 Xianzhun Guitar Tuner',
+          short_name: '弦准 Xianzhun',
           description: '专业吉他调音器应用，支持自动识别琴弦与手动设定音调调弦、听音定弦及 A4 基准音校准。',
           theme_color: '#111214',
           background_color: '#111214',

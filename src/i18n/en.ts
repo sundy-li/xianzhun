@@ -2,7 +2,6 @@ import type { Messages } from './zh';
 
 export const en: Messages = {
   app: {
-    brandShort: 'Xianzhun',
     brandFull: 'Xianzhun Guitar Tuner',
     chromaticSummary: (a4) => `Chromatic · ${a4}Hz`,
     modifiedSuffix: ' (edited)',

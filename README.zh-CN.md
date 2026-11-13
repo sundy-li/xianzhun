@@ -20,7 +20,9 @@
 - 每根弦都有参考音，可以单次播放或持续播放。
 - 内置 7 种定弦（标准、Drop D、降半音、降全音、开放 G、开放 D、DADGAD），支持自定义定弦和十二平均律模式。
 - A4 校准（430–450 Hz）、变调夹（0–7 品）、音准容差（±2 / ±4 / ±8 音分）。
+- 音准检查：对比空弦和 12 品，告诉你鞍座该往哪边调。
 - 节拍器：30–240 BPM，点击测速，6 种拍号。
+- 中英文界面，调音时屏幕常亮。
 - 可安装的 PWA，离线可用。
 
 详见[功能说明](docs/zh-CN/features.md)。
@@ -36,7 +38,7 @@ bun run dev      # http://localhost:3000
 
 | 文档 | 内容 |
 |---|---|
-| [功能说明](docs/zh-CN/features.md) | 调音、定弦、校准、节拍器、检测原理 |
+| [功能说明](docs/zh-CN/features.md) | 调音、定弦、音准检查、校准、节拍器、检测原理 |
 | [安装](docs/zh-CN/install.md) | 网页 / PWA、Android、macOS、Windows，麦克风问题排查 |
 | [开发](docs/zh-CN/development.md) | 环境要求、常用命令、目录结构、原生应用构建 |
 | [发布与部署](docs/zh-CN/release.md) | 发布 GitHub Release、Cloudflare Pages、CI 密钥 |

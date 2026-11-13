@@ -20,7 +20,9 @@ A guitar tuner and metronome that runs in the browser, on Android, macOS and Win
 - Reference tones for every string, played once or on a loop.
 - 7 built-in tunings (Standard, Drop D, Eb, D, Open G, Open D, DADGAD), custom tunings and a chromatic mode.
 - A4 calibration (430–450 Hz), capo (0–7), and a choice of in-tune tolerance (±2 / ±4 / ±8 cents).
+- Intonation check: compares the open string with the 12th fret and tells you which way to move the saddle.
 - Metronome: 30–240 BPM, tap tempo, 6 time signatures.
+- English and Chinese interface. The screen stays on while you tune.
 - Installable PWA that works offline.
 
 See [Features](docs/en/features.md) for details.
@@ -36,7 +38,7 @@ bun run dev      # http://localhost:3000
 
 | Doc | Contents |
 |---|---|
-| [Features](docs/en/features.md) | Tuner, tunings, calibration, metronome, how detection works |
+| [Features](docs/en/features.md) | Tuner, tunings, intonation, calibration, metronome, how detection works |
 | [Installation](docs/en/install.md) | Web / PWA, Android, macOS, Windows, microphone troubleshooting |
 | [Development](docs/en/development.md) | Requirements, commands, project layout, native builds |
 | [Release & deploy](docs/en/release.md) | Publishing a GitHub release, Cloudflare Pages, CI secrets |

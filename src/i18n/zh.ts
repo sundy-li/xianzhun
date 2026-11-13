@@ -1,7 +1,6 @@
 /** Chinese UI strings. This object defines the message shape; en.ts must match it. */
 export const zh = {
   app: {
-    brandShort: '弦准',
     brandFull: '弦准吉他调音器',
     chromaticSummary: (a4: number) => `十二平均律 · ${a4}Hz`,
     modifiedSuffix: '（已改）',

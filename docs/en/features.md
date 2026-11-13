@@ -2,15 +2,13 @@
 
 [← README](../../README.md) · [简体中文](../zh-CN/features.md)
 
-The interface is in Chinese. Labels are quoted below with an English gloss.
-
 ## Tuner
 
 The tuner page is one card: a needle gauge on top and a 3+3 headstock below it. The left pegs are strings 4, 5 and 6, and the right pegs are strings 3, 2 and 1.
 
 ### Auto and manual
 
-The switch in the top-right corner (自动 / 手动, auto / manual) picks the mode. The default is **auto**.
+The switch in the top-right corner (**Auto** / **Manual**) picks the mode. The default is **auto**.
 
 - **Auto**: pluck any string. The app finds the nearest string of the current tuning and lights up its peg.
 - **Manual**: tap a peg. The app switches to manual, locks that string as the target, and plays its reference tone. Flip the switch to go back to auto.
@@ -26,28 +24,38 @@ In manual mode, a row under the headstock offers:
 |---|---|
 | Needle | Offset from the target, −50 to +50 cents |
 | Green band | The in-tune range, set by the tolerance |
-| Guidance line | 音偏低 (flat, tighten), 音准已校准 (in tune) or 音偏高 (sharp, loosen), with an arrow icon |
-| Measured / Cents / Target | Detected frequency, offset in cents, target frequency |
+| Guidance line | *Flat* (tighten), *In tune* or *Sharp* (loosen), with an arrow icon |
+| Detected / Cents / Target | Detected frequency, offset in cents, target frequency |
 | Waveform strip | Live input signal |
 
 A string that stays in tune is marked with a check on its peg. The progress counter in the top bar resets all marks.
 
 ### Listening controls
 
-- The microphone starts when the app opens. Tap **● 监听中** (listening) in the gauge to pause it, and **开始监听** (start listening) to resume.
+- The microphone starts when the app opens. Tap **● Listening** in the gauge to pause it, and **Start listening** to resume.
 - The app releases the microphone when it goes to the background and picks it up again when you return.
-- If the input clips, the guidance line shows 声音过大 (too loud).
-- **没有吉他？试试内置试音模拟** (no guitar? try the simulator) at the bottom feeds a synthetic guitar signal into the same detector. You can pick the string and the detune amount.
+- If the input clips, the guidance line shows *Too loud*.
+- **No guitar? Try the built-in simulator** at the bottom feeds a synthetic guitar signal into the same detector. You can pick the string and the detune amount.
 
 ## Tunings
 
-The **定弦方案 / 定弦与设音** (tunings) panel, a tab on mobile and the right column on desktop, contains:
+The **Tunings** panel, a tab on mobile and the right column on desktop, contains:
 
-- **Presets**: Standard, Drop D, Half step down (Eb), Whole step down (D), Open G, Open D, DADGAD.
+- **Presets**: Standard, Drop D, Eb Standard, D Standard, Open G, Open D, DADGAD.
 - **Chromatic mode**: matches any note of the 12-tone scale instead of the six strings.
 - **Per-string pitch**: set each string to any note from E1 to E5. Save the result as a custom preset, or reset it to the selected preset.
 
 Settings and custom presets are saved in the browser (`localStorage`).
+
+## Intonation check
+
+The **Intonation** tab checks whether each string plays in tune up the neck. The note at the 12th fret should be exactly one octave above the open string.
+
+1. Tune the string, pick it in the string row, and tap **Check string N**.
+2. Pluck the open string and let it ring. The reading is taken once the pitch has been steady for about 0.6 s.
+3. Fret the 12th fret, pluck again, and let it ring.
+
+The result is the 12th-fret offset from the octave in cents. Within ±3 ¢ counts as good. Otherwise the app says whether to move the saddle back (12th fret sharp) or forward (flat) and estimates the distance for a 648 mm scale, about 0.37 mm per cent. The check needs the microphone. It warns when it hears the wrong string or fret, and when the open string is more than 10 ¢ off.
 
 ## Calibration
 
@@ -57,6 +65,7 @@ Settings and custom presets are saved in the browser (`localStorage`).
 | Capo | 0–7 frets. Target notes move up by the same number of semitones |
 | Tolerance | ±2 ¢ (strict), ±4 ¢ (standard), ±8 ¢ (relaxed) |
 | Note names | Sharps (`#`) or flats (`b`) |
+| Language | 中文 or English. The first visit follows the browser language; the **中 / EN** button in the top bar switches it |
 
 ## Metronome
 
@@ -71,6 +80,10 @@ Settings and custom presets are saved in the browser (`localStorage`).
 2. A YIN pitch detector estimates the fundamental frequency. The period is then refined at its multiples, and candidates are checked to avoid octave errors on low strings.
 3. A level gate (`src/utils/signalGate.ts`) only starts a new reading right after a pluck. Steady background sounds never produce a pluck onset, so they are ignored.
 4. The frequency is matched to the nearest target string (or chromatic note), taking A4 and capo into account.
+
+## Screen stays on
+
+While the microphone, simulator, metronome or a held reference tone is running, the screen does not dim. The web app uses the Screen Wake Lock API where the browser supports it. The Android app keeps the screen on while it is open.
 
 ## Offline and install
 
