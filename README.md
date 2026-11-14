@@ -8,9 +8,9 @@ A guitar tuner and metronome that runs in the browser, on Android, macOS and Win
 - **Download**: Android, macOS and Windows builds on the [Releases](https://github.com/sundy-li/xianzhun/releases) page
 
 <p align="center">
-  <img src="docs/images/mobile.png" alt="Tuner on a phone" width="260">
+  <img src="docs/images/mobile.png" alt="Tuner on a phone" height="360">
   &nbsp;
-  <img src="docs/images/desktop.png" alt="Tuner on desktop" width="540">
+  <img src="docs/images/desktop.png" alt="Tuner on desktop" height="360">
 </p>
 
 ## Features

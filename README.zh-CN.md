@@ -8,9 +8,9 @@
 - **下载安装包**：Android、macOS、Windows 版本见 [Releases](https://github.com/sundy-li/xianzhun/releases)
 
 <p align="center">
-  <img src="docs/images/mobile.png" alt="手机端调音页" width="260">
+  <img src="docs/images/mobile.png" alt="手机端调音页" height="360">
   &nbsp;
-  <img src="docs/images/desktop.png" alt="桌面端调音页" width="540">
+  <img src="docs/images/desktop.png" alt="桌面端调音页" height="360">
 </p>
 
 ## 功能
