@@ -18,6 +18,7 @@ export const zh = {
     trySimulator: '没有吉他？试试内置试音模拟',
     mobileNavAria: '主导航',
     switchLanguageAria: '切换语言 / Switch language',
+    githubAria: '在 GitHub 上查看源码',
   },
   tabs: {
     tuner: '调音器',

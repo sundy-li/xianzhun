@@ -19,6 +19,7 @@ export const en: Messages = {
     trySimulator: 'No guitar? Try the built-in simulator',
     mobileNavAria: 'Main navigation',
     switchLanguageAria: 'Switch language / 切换语言',
+    githubAria: 'View source on GitHub',
   },
   tabs: {
     tuner: 'Tuner',

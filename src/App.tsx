@@ -3,6 +3,7 @@ import {
   Activity,
   AlertCircle,
   ChevronDown,
+  Github,
   Guitar,
   Mic,
   Pause,
@@ -438,6 +439,17 @@ export default function App() {
           >
             {lang === 'zh' ? 'EN' : '中'}
           </button>
+          <a
+            href="https://github.com/sundy-li/xianzhun"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={t.app.githubAria}
+            title="GitHub"
+            data-testid="header-github-link"
+            className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg bg-raised border border-white/10 text-gray-300 hover:text-white"
+          >
+            <Github className="w-4 h-4" aria-hidden="true" />
+          </a>
           {/* On phones the install card lives in Settings */}
           <div className="hidden sm:block">
             <PWAInstallButton variant="compact" />
